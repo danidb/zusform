@@ -1,2 +1,5 @@
 node_modules
 coverage
+public
+.vscode
+.DS_Store
