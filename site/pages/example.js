@@ -19,8 +19,8 @@ function AnotherComponent () {
 }
 
 function TextField(props) {
-    const register = useForm(form => form.register)
-    const field = useForm(...getField(props.name)) || register(props.name, props.value)
+    const register = props.useForm(form => form.register)
+    const field = props.useForm(...getField(props.name)) || register(props.name, props.value)
 
     const renders = React.useRef(1)
     React.useEffect(() => { renders.current += 1 })

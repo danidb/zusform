@@ -1,11 +1,10 @@
 import * as React from 'react';
 import styles from './TextField.module.css'
-import { useForm } from '../pages/index'
 import { getField } from 'zusform'
 
 export default function TextField(props) {
-    const register = useForm(form => form.register)
-    const field = useForm(...getField(props.name)) || register(props.name, props.value)
+    const register = props.useForm(form => form.register)
+    const field = props.useForm(...getField(props.name)) || register(props.name, props.value)
 
     const renders = React.useRef(1)
     React.useEffect(() => { renders.current += 1 })

@@ -33,8 +33,8 @@ function AnotherComponent () {
 }
 
 function TextField(props) {
-    const register = useForm(form => form.register)
-    const field = useForm(...getField(props.name)) || register(props.name, props.value)
+    const register = props.useForm(form => form.register)
+    const field = props.useForm(...getField(props.name)) || register(props.name, props.value)
 
     const renders = React.useRef(1)
     React.useEffect(() => { renders.current += 1 })
@@ -65,11 +65,13 @@ export default function Home() {
                         label={`Label (foo.qux[${idx}], I'm in an array)`}
                         name={`foo.qux[${idx}]`}
                         value={`Hello from item ${idx} in this field array "foo.qux."`}
+                        useForm={useForm}
                     /><br />
                     <TextField
                         label={`Label (more.nesting.fred.${idx}, I'm in an object)`}
                         name={`more.nesting.fred.${idx}`}
                         value={`Hello from index ${idx} in the object "more.nesting.fred." `}
+                        useForm={useForm}
                     /><br />
                 </div>
             )}

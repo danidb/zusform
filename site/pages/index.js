@@ -18,12 +18,12 @@ export default function Home() {
         <AnotherComponent />
         <form {...formProps} >
             <button className={ustyle.button} type="submit">Submit</button><br />
-            <TextField label="Foo label" name={`foo.foo`} value={`Foo`} />
-            <TextField label="Baz label" name={`foo.bar.baz`} value={`Baz`} />
+            <TextField label="Foo label" name={`foo.foo`} value={`Foo`} useForm={useForm} />
+            <TextField label="Baz label" name={`foo.bar.baz`} value={`Baz`} useForm={useForm} />
             {Array.from(Array(20)).map((_, idx) => idx).map(idx =>
                 <div key={idx}>
-                    <TextField label={`Label ${idx} (I'm in an array, [ ] )`} name={`foo.qux[${idx}]`} value={`Hello from item ${idx} in this field array "foo.qux."`} /><br />
-                    <TextField label={`Label ${idx} (I'm in an object, . )`} name={`more.nesting.fred.${idx}`} value={`Hello from index ${idx} in the object "more.nesting.fred." `} /><br />
+                    <TextField label={`Label ${idx} (I'm in an array, [ ] )`} name={`foo.qux[${idx}]`} value={`Hello from item ${idx} in this field array "foo.qux."`} useForm={useForm} /><br />
+                    <TextField label={`Label ${idx} (I'm in an object, . )`} name={`more.nesting.fred.${idx}`} value={`Hello from index ${idx} in the object "more.nesting.fred." `} useForm={useForm} /><br />
                 </div>
             )}
         </form>
