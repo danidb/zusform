@@ -2,12 +2,12 @@ import createForm from './createForm'
 
 describe("createForm", () => {
     it("Executes successfully and creates bare initial form state.", () => {
-        const form = createForm(console.log)
+        const form = createForm()
         expect(Object.keys(form.getState())).toEqual(["formProps", "register", "fields"])
     })
 
     it ("Allows us to register a field with a given default value", () => {
-        const form = createForm<any>(console.log)
+        const form = createForm<any>()
         const register = form.getState().register
         let field = register("foo.bar[1].something", 1729)
         expect(field.value).toEqual(1729)

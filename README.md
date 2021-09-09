@@ -17,7 +17,7 @@ import * as React from 'react'
 import createForm from 'zusform'
 import { getField } from 'zusform'
 
-export const useForm = createForm(console.log)
+export const useForm = createForm()
 
 function AnotherComponent () {
     const qux15 = useForm(...getField("foo.qux[15]"))
@@ -55,7 +55,7 @@ export default function Home() {
         <h1>Using values outside the form</h1>
         <AnotherComponent />
         <h1>A Sample Form</h1>
-        <form {...formProps} >
+        <form {...formProps(values => console.log(values))} >
             <button type="submit">Submit</button><br />
             <TextField label="Foo label" name={`foo.foo`} value={`Foo`} />
             <TextField label="Baz label" name={`foo.bar.baz`} value={`Baz`} />
@@ -84,7 +84,7 @@ export default function Home() {
 ## Why
 1. I wanted a performant React form handling library with a simpler API for the features that matter most to me, based on controlled components.
 2. I've been using Zustand quite often and I think it's great, handling forms with Zustand would mean fewer moving parts.
-3. I'm working on a project for a client where this would make sense.
+3. I'm working on a project where this would make sense.
 4. Enjoyment.
 
 ## Contributing

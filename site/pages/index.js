@@ -6,7 +6,7 @@ import AnotherComponent from '../components/AnotherComponent';
 import createForm from 'zusform'
 
 
-export const useForm = createForm(console.log)
+export const useForm = createForm()
 
 
 export default function Home() {
@@ -16,8 +16,8 @@ export default function Home() {
         <div className={ustyle.pageContainer}>
         <h1 className={ustyle.h1}>Zusform, a work in progress</h1>
         <AnotherComponent />
-        <form {...formProps} >
-            <button className={ustyle.button} type="submit">Submit</button><br />
+        <form {...formProps(v => console.log(v))} >
+            <button className={ustyle.button} type="submit"> submit </button><br />
             <TextField label="Foo label" name={`foo.foo`} value={`Foo`} useForm={useForm} />
             <TextField label="Baz label" name={`foo.bar.baz`} value={`Baz`} useForm={useForm} />
             {Array.from(Array(20)).map((_, idx) => idx).map(idx =>

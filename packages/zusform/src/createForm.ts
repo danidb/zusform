@@ -10,9 +10,7 @@ type Field = {
     onChange: (e:any) => void
 }
 type DefaultFormState<T> = {
-    formProps: {
-        onSubmit: (e:any) => void
-    },
+    formProps: (handleSubmit:(values:T) => void) => {onSubmit: (e:any) => void},
     register: (key:string, value:any) => Field
     fields: {
         name: any, // TODO: The way we've organized this (which is probably going to change, I'm not convinced) can be typed...
@@ -37,7 +35,7 @@ function makeStateSlice<T>() {
     }
 }
 
-export default function createForm<T>(handleSubmit:(values:T) => void) {
+export default function createForm<T>() {
     function register(key:string, value:any, set:any) {
         function handleChange(e:any, set) {
             set(state => {
@@ -69,9 +67,9 @@ export default function createForm<T>(handleSubmit:(values:T) => void) {
         return field
     }
     return create<DefaultFormState<T>>((set, get) => ({
-        formProps: {
+        formProps: handleSubmit => ({
             onSubmit: e => { e.preventDefault(); handleSubmit(get().fields.values) }
-        },
+        }),
         register: (key, value) => register(key, value, set),
         ...makeStateSlice<T>()
     }))
