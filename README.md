@@ -5,6 +5,10 @@ This library is under very active development and the API is volatile ☢️. Do
 # 🐻‍❄️ Zusform
 Oversimplified React form handling with Zustand.
 
+## Dependencies:
+- Zustand, no kidding!
+- Immer, which you're probably already using.
+
 ## Non-Trivial Example
 
 The structure of the form is generated based on keys and an initial value is specified when you `register` a field.
