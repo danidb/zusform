@@ -1,5 +1,6 @@
 import create from 'zustand'
 import { select } from './select'
+import produce from 'immer'
 
 type Field = {
     key: string,
@@ -38,13 +39,11 @@ function makeStateSlice<T>() {
 export default function createForm<T>() {
     function register(key:string, value:any, set:any) {
         function handleChange(e:any, set) {
-            set(state => {
-                const _state = {...state}
-                select(key, false, e.target.value)(_state.fields.values)
-                select(key, false, true)(_state.fields.touched)
-                select(key, false, "")(_state.fields.error)
-                return _state
-            })
+            set(produce<DefaultFormState<T>>(state => {
+                select(key, false, e.target.value)(state.fields.values)
+                select(key, false, true)(state.fields.touched)
+                select(key, false, "")(state.fields.error)
+            }))
         }
         const field = {
             name: key,
@@ -54,16 +53,14 @@ export default function createForm<T>() {
             error: "", // TODO: Initial validation
             touched: false,
         }
-        set(state => {
-            const _state = {...state}
-            select(key, true, field.value)(_state.fields.values)
-            select(key, true, field.touched)(_state.fields.touched)
-            select(key, true, field.name)(_state.fields.name)
-            select(key, true, field.key)(_state.fields.key)
-            select(key, true, field.error)(_state.fields.error)
-            select(key, true, field.onChange)(_state.fields.onChange)
-            return _state
-        })
+        set(produce<DefaultFormState<T>>(state => {
+            select(key, true, field.value)(state.fields.values)
+            select(key, true, field.touched)(state.fields.touched)
+            select(key, true, field.name)(state.fields.name)
+            select(key, true, field.key)(state.fields.key)
+            select(key, true, field.error)(state.fields.error)
+            select(key, true, field.onChange)(state.fields.onChange)
+        }))
         return field
     }
     return create<DefaultFormState<T>>((set, get) => ({
