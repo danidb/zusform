@@ -46,10 +46,10 @@ export default function Home() {
             <TextField label="Foo label" name={`foo.foo`} value={`Foo`} />
             <TextField label="Baz label" name={`foo.bar.baz`} value={`Baz`} />
             {Array.from(Array(20)).map((_, idx) => idx).map(idx =>
-                <>
-                    <TextField label={`Label ${idx} (I'm in an array, [ ] )`} key={`foo.qux[${idx}]`} name={`foo.qux[${idx}]`} value={`Hello from item ${idx} in this field array "foo.qux."`} /><br />
-                    <TextField label={`Label ${idx} (I'm in an object, . )`} key={`more.nesting.fred.${idx}`} name={`more.nesting.fred.${idx}`} value={`Hello from index ${idx} in the object "more.nesting.fred." `} /><br />
-                </>
+                <div key={idx}>
+                    <TextField label={`Label (foo.qux[${idx}], I'm in an array)`} name={`foo.qux[${idx}]`} value={`Hello from item ${idx} in this field array "foo.qux."`} /><br />
+                    <TextField label={`Label (more.nesting.fred.${idx}, I'm in an object)`} name={`more.nesting.fred.${idx}`} value={`Hello from index ${idx} in the object "more.nesting.fred." `} /><br />
+                </div>
             )}
         </form>
         </>
