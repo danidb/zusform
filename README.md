@@ -7,7 +7,9 @@ Oversimplified React form handling with Zustand.
 
 ## Non-Trivial Example
 
-The structure of the form is generated dynamically.
+The structure of the form is generated based on keys and an initial value is specified when you `register` a field.
+
+Square brackets in keys denote arrays, dots denote objects. For example, `foo.qux[15]` means we expect `foo` to be an object, and `foo.qux` to be an array. If we had written `foo.qux.15` then `foo.qux` would be an object.
 
 ```javascript
 import * as React from 'react'
@@ -84,13 +86,14 @@ export default function Home() {
 4. Enjoyment.
 
 ## Contributing
-Contributions and constructive criticism are welcome. I'm sure there are flagrant issues and, if you like what you see, we can build this together.
+Contributions and constructive criticism are welcome. Feel free to reach out! I'm sure there are flagrant issues and errors to be found. If you like what you see, consider contributing!
 
 ### TODO
 1. [ ] Validation _IN PROGRESS_
    1. [ ] Easy Yup
    2. [ ] Easy API for *< insert other favorites here >* or DIY
 2. [ ] Realistic test cases that cover integration with React and common errors.
-3. [ ] Complete typing of the fields object on our form state (error, touched, etc.) once satisfied with the structure.
-4. [ ] CI, build and release actions
-5. [ ] Make it possible to attach a "zusform" to an existing zustand store, rather than create a new one.
+3. [ ] Array utilities for ordering and deletion _IN PROGRESS_
+4. [ ] Complete typing of the fields object on our form state (error, touched, etc.) once satisfied with the structure.
+5. [ ] CI, build and release actions
+6. [ ] Make it possible to attach a "zusform" to an existing zustand store, rather than create a new one.
