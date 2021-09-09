@@ -1,0 +1,27 @@
+{
+  "name": "zusform",
+  "version": "0.0.4",
+  "description": "Form handling with Zustand.",
+  "main": "dist/index.js",
+  "files": [
+    "/dist"
+  ],
+  "author": "Daniel Del Balso",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "@types/jest": "^27.0.1",
+    "jest": "^27.0.6",
+    "react": "^17.0.2",
+    "ts-jest": "^27.0.5",
+    "typescript": "^4.4.2",
+    "zustand": "^3.5.10"
+  },
+  "peerDependencies": {
+    "zustand": "^3.5.10"
+  },
+  "scripts": {
+    "build": "../../node_modules/typescript/bin/tsc --build",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest --silent=false --coverage"
+  }
+}

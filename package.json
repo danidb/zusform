@@ -1,0 +1,8 @@
+{
+    "private": true,
+    "workspaces": [
+        "packages/zusform",
+        "packages/zusform-components",
+        "site"
+    ]
+}
