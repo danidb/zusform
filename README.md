@@ -7,6 +7,8 @@ Oversimplified React form handling with Zustand.
 
 ## Non-Trivial Example
 
+The structure of the form is generated dynamically.
+
 ```javascript
 import * as React from 'react'
 
