@@ -25,6 +25,7 @@ export const useForm = createForm()
 
 function AnotherComponent () {
     const qux15 = useForm(...getField("foo.qux[15]"))
+    // this: useForm(form => form.fields.values.foo.qux[15]) will also work, if you just want the value.
     const fooBarBaz = useForm(...getField("foo.bar.baz"))
 
     return (
