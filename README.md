@@ -38,7 +38,7 @@ function AnotherComponent () {
 }
 
 function TextField(props) {
-    const register = props.useForm(form => form.register)
+    const register = props.useForm(form => form.actions.register)
     const field = props.useForm(...getField(props.name)) || register(props.name, props.value)
 
     const renders = React.useRef(1)
@@ -53,6 +53,12 @@ function TextField(props) {
 }
 
 export default function Home() {
+    const initialized = useForm(form => form.initialized)
+    const initialize = useForm(form => form.actions.initialize)
+    React.useEffect(() => {
+        // With initialize, you can optionally set some initial values.
+        initialize(values => console.log(values), {foo: {foo: "Hello initial foo"}})
+    }, [])
     const formProps = useForm(form => form.formProps)
 
     return (
@@ -60,27 +66,30 @@ export default function Home() {
         <h1>Using values outside the form</h1>
         <AnotherComponent />
         <h1>A Sample Form</h1>
-        <form {...formProps(values => console.log(values))} >
-            <button type="submit">Submit</button><br />
-            <TextField label="Foo label" name={`foo.foo`} value={`Foo`} />
-            <TextField label="Baz label" name={`foo.bar.baz`} value={`Baz`} />
-            {Array.from(Array(20)).map((_, idx) => idx).map(idx =>
-                <div key={idx}>
-                    <TextField
-                        label={`Label (foo.qux[${idx}], I'm in an array)`}
-                        name={`foo.qux[${idx}]`}
-                        value={`Hello from item ${idx} in this field array "foo.qux."`}
-                        useForm={useForm}
-                    /><br />
-                    <TextField
-                        label={`Label (more.nesting.fred.${idx}, I'm in an object)`}
-                        name={`more.nesting.fred.${idx}`}
-                        value={`Hello from index ${idx} in the object "more.nesting.fred." `}
-                        useForm={useForm}
-                    /><br />
-                </div>
-            )}
-        </form>
+        {initialized &&
+            <form {...formProps} >
+                <button type="submit">Submit</button><br />
+                <TextField label="Foo label" name={`foo.foo`} value={`Foo`} />
+                <TextField label="Baz label" name={`foo.bar.baz`} value={`Baz`} />
+                {Array.from(Array(20)).map((_, idx) => idx).map(idx =>
+                    <div key={idx}>
+                        <TextField
+                            label={`Label (foo.qux[${idx}], I'm in an array)`}
+                            name={`foo.qux[${idx}]`}
+                            value={`Hello from item ${idx} in this field array "foo.qux."`}
+                            useForm={useForm}
+                        /><br />
+                        <TextField
+                            label={`Label (more.nesting.fred.${idx}, I'm in an object)`}
+                            name={`more.nesting.fred.${idx}`}
+                            // Notice how we use "register" in TextField to set the initial value from props.value
+                            value={`Hello from index ${idx} in the object "more.nesting.fred." `}
+                            useForm={useForm}
+                        /><br />
+                    </div>
+                )}
+            </form>
+        }
         </>
     )
 }

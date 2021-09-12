@@ -19,16 +19,24 @@ export function parseKey(key) {
 
 // TODO: This function does too many things to be called 'select'. Consider breaking it up or renaming it.
 export function select(key:string, build?:boolean, value?:any) {
+    console.log(key, build, value)
     return parseKey(key).reduce((selector, _key) => {
         if (build) {
             return v => {
-                if (selector(v, build, value)[_key.key]) {
+                if (typeof selector(v, build, value)[_key.key] !== 'undefined' && _key.type != 'leaf') {
                     return selector(v, build, value)[_key.key]
                 } else {
                     switch(_key.type) {
                         case "array": selector(v, build, value)[_key.key] = []; break;
                         case "object": selector(v, build, value)[_key.key] = {}; break;
-                        case "leaf": selector(v, build, value)[_key.key] = value; break;
+                        case "leaf": {
+                            if (typeof value !== 'undefined') {
+                                selector(v, build, value)[_key.key] = value;
+                                break;
+                            } else {
+                                break;
+                            }
+                        }
                         default: break;
                     }
                     return selector(v, build, value)[_key.key]
@@ -36,8 +44,8 @@ export function select(key:string, build?:boolean, value?:any) {
             }
         }
         return v => {
-            if (selector(v, build, value)) {
-                if (_key.type === 'leaf' && value != undefined) {
+            if (typeof selector(v, build, value) !== 'undefined') {
+                if (_key.type === 'leaf' && typeof value !== 'undefined') {
                     selector(v, build, value)[_key.key] = value
                 }
                 return selector(v, build, value)[_key.key]

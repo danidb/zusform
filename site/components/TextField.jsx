@@ -3,7 +3,7 @@ import styles from './TextField.module.css'
 import { getField } from 'zusform'
 
 export default function TextField(props) {
-    const register = props.useForm(form => form.register)
+    const register = props.useForm(form => form.actions.register)
     const field = props.useForm(...getField(props.name)) || register(props.name, props.value)
 
     const renders = React.useRef(1)
