@@ -39,7 +39,17 @@ describe("Fields", () => {
         initialize(v => undefined, {foo: {bar: "bar"}})
         const register = form.getState().actions.register
         register("foo.bar", 1729)
-        console.log(JSON.stringify(form.getState().fields.values))
         expect(form.getState().fields.values.foo.bar).toEqual(1729)
+    })
+
+    it("include a function that can be used to set their value", () => {
+        const form = createForm<any>()
+        const initialize = form.getState().actions.initialize
+        initialize(v => undefined, {foo: {bar: "bar"}})
+        const register = form.getState().actions.register
+        register("foo.bar", 1729)
+        const setValue = form.getState().fields.setValue.foo.bar
+        setValue(12)
+        expect(form.getState().fields.values.foo.bar).toEqual(12)
     })
 })

@@ -1,6 +1,6 @@
 
-# 🚧 WARNING - It won't be the same tomorrow morning. 🏗️
-This library is under very active development and the API is volatile ☢️. Don't use it yet, but feel free to contribute if you see something you like!
+# 🚧 WARNING - Work in progress. 🏗️
+This library is under very active development and the API is volatile. It's probably unwise to use it just yet. Feel free to reach out and contribute if you see something you like.
 
 # 🐻‍❄️ Zusform
 Oversimplified React form handling with Zustand.
@@ -10,10 +10,9 @@ Oversimplified React form handling with Zustand.
 - Immer, which you're probably already using.
 
 ## Non-Trivial Example
+Initialize a form with optional initial values, then the structure of the form is generated based on keys. An initial value can also be specified when you `register` a field.
 
-The structure of the form is generated based on keys and an initial value is specified when you `register` a field.
-
-Square brackets in keys denote arrays, dots denote objects. For example, `foo.qux[15]` means we expect `foo` to be an object, and `foo.qux` to be an array. If we had written `foo.qux.15` then `foo.qux` would be an object.
+Square brackets in keys denote arrays, dots denote objects. For example, `foo.qux[15]` means we expect `foo` to be an object, and `foo.qux` to be an array. If we had written `foo.qux.15` then `foo.qux` would be an object. You can create whatevet structure you want.
 
 ```javascript
 import * as React from 'react'

@@ -8,6 +8,7 @@ type Field = {
     value: any,
     error: string,
     touched: boolean,
+    setValue: (value:any) => void
     onChange: (e:any) => void
 }
 
@@ -27,6 +28,7 @@ type DefaultFormState<T> = {
         values: T,
         error: any,
         touched: any,
+        setValue: any,
         onChange: any
     }
 }
@@ -39,6 +41,7 @@ function makeStateSlice<T>() {
             values: {} as T,
             touched: {},
             error: {},
+            setValue: {},
             onChange: {}
         }
     }
@@ -46,17 +49,21 @@ function makeStateSlice<T>() {
 
 export default function createForm<T>() {
     function register(key:string, value:any, set:any) {
-        function handleChange(e:any, set) {
+        function setValue(v, key, set) {
             set(produce<DefaultFormState<T>>(state => {
-                select(key, false, e.target.value)(state.fields.values)
+                select(key, false, v)(state.fields.values)
                 select(key, false, true)(state.fields.touched)
                 select(key, false, "")(state.fields.error)
             }))
+        }
+        function handleChange(e:any, set) {
+            setValue(e.target.value, key, set)
         }
         const field = {
             name: key,
             key,
             value,
+            setValue: value => setValue(value, key, set),
             onChange: e => handleChange(e, set),
             error: "", // TODO: Initial validation
             touched: false,
@@ -67,6 +74,7 @@ export default function createForm<T>() {
             select(key, true, field.name)(state.fields.name)
             select(key, true, field.key)(state.fields.key)
             select(key, true, field.error)(state.fields.error)
+            select(key, true, field.setValue)(state.fields.setValue)
             select(key, true, field.onChange)(state.fields.onChange)
         }))
         return field

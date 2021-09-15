@@ -3,11 +3,31 @@ import ustyle from '../styles/utilities.module.css'
 
 import TextField from '../components/TextField';
 import AnotherComponent from '../components/AnotherComponent';
-import createForm from 'zusform'
+import createForm, { getField } from 'zusform'
 import shallow from 'zustand/shallow'
 
 
 export const useForm = createForm()
+
+function DependentField () {
+    const fieldA = useForm(...getField("foo.fieldA"))
+    const fieldB = useForm(...getField("foo.fieldB"))
+    React.useEffect(() => {
+        if (fieldB && fieldA && fieldA.value.length > 10) {
+            fieldB.setValue("I set you!")
+        }
+    }, [fieldA, fieldB])
+
+    return (
+        <>
+            <TextField label="A field that controls another." name="foo.fieldA" value="" useForm={useForm} />
+            {fieldA && fieldA.value.length > 2 &&
+                <TextField label="B field that is controlled by the field above." name="foo.fieldB" value="" useForm={useForm} />
+            }
+        </>
+    )
+
+}
 
 export default function Home() {
     const initialize = useForm(form => form.actions.initialize)
@@ -25,6 +45,7 @@ export default function Home() {
             {initialized &&
                 <form {...formProps} >
                     <button className={ustyle.button} type="submit"> submit </button><br />
+                    <DependentField />
                     <TextField label="Foo label" name={`foo.foo`} useForm={useForm} />
                     <TextField label="Baz label" name={`foo.bar.baz`} value={`Baz`} useForm={useForm} />
                     {Array.from(Array(20)).map((_, idx) => idx).map(idx =>

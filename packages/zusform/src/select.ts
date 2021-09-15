@@ -19,7 +19,6 @@ export function parseKey(key) {
 
 // TODO: This function does too many things to be called 'select'. Consider breaking it up or renaming it.
 export function select(key:string, build?:boolean, value?:any) {
-    console.log(key, build, value)
     return parseKey(key).reduce((selector, _key) => {
         if (build) {
             return v => {
