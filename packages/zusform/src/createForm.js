@@ -2,43 +2,12 @@ import create from 'zustand'
 import { select } from './select'
 import produce from 'immer'
 
-type Field = {
-    key: string,
-    name: string,
-    value: any,
-    error: string,
-    touched: boolean,
-    setValue: (value:any) => void
-    onChange: (e:any) => void
-}
-
-type DefaultFormState<T> = {
-    initialized: boolean,
-    handleSubmit: (values:T) => void,
-    formProps: {
-        onSubmit: (e:any) => void
-    },
-    actions: {
-        register: (key:string, value:any) => Field,
-        initialize: (handleSubmit, initialValues) => void
-    },
-    fields: {
-        name: any, // TODO: The way we've organized this (which is probably going to change, I'm not convinced) can be typed...
-        key: any
-        values: T,
-        error: any,
-        touched: any,
-        setValue: any,
-        onChange: any
-    }
-}
-
-function makeStateSlice<T>() {
+function makeStateSlice() {
     return {
         fields: {
             name: {},
             key: {},
-            values: {} as T,
+            values: {},
             touched: {},
             error: {},
             setValue: {},
@@ -47,16 +16,16 @@ function makeStateSlice<T>() {
     }
 }
 
-export default function createForm<T>() {
-    function register(key:string, value:any, set:any) {
+export default function createForm() {
+    function register(key, value, set) {
         function setValue(v, key, set) {
-            set(produce<DefaultFormState<T>>(state => {
+            set(produce(state => {
                 select(key, false, v)(state.fields.values)
                 select(key, false, true)(state.fields.touched)
                 select(key, false, "")(state.fields.error)
             }))
         }
-        function handleChange(e:any, set) {
+        function handleChange(e, set) {
             setValue(e.target.value, key, set)
         }
         const field = {
@@ -68,7 +37,7 @@ export default function createForm<T>() {
             error: "", // TODO: Initial validation
             touched: false,
         }
-        set(produce<DefaultFormState<T>>(state => {
+        set(produce(state => {
             select(key, true, field.value)(state.fields.values)
             select(key, true, field.touched)(state.fields.touched)
             select(key, true, field.name)(state.fields.name)
@@ -79,7 +48,7 @@ export default function createForm<T>() {
         }))
         return field
     }
-    return create<DefaultFormState<T>>((set, get) => ({
+    return create((set, get) => ({
         initialized: false,
         handleSubmit: values => console.log(JSON.stringify(values)),
         actions: {
@@ -96,7 +65,7 @@ export default function createForm<T>() {
             onSubmit: e => { e.preventDefault(); get().handleSubmit(get().fields.values)}
         },
         register: (key, value) => register(key, value, set),
-        ...makeStateSlice<T>()
+        ...makeStateSlice()
     }))
 }
 

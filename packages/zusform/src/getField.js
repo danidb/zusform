@@ -1,7 +1,7 @@
 import { select } from './select'
 import shallow from 'zustand/shallow'
 
-export default function getField(key:string) {
+export default function getField(key) {
     return [
         form => {
             const touched = select(key)(form.fields.touched)
@@ -20,3 +20,4 @@ export default function getField(key:string) {
         shallow
     ]
 }
+

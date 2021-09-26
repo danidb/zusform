@@ -1,8 +1,8 @@
-import createForm from './createForm'
+const createForm = require('./createForm').default
 
 describe("Forms", () => {
     it("Can be initialized with actions.initialize", () => {
-        const form = createForm<any>()
+        const form = createForm()
         expect(form.getState().initialized).toBeFalsy()
         const initialize = form.getState().actions.initialize
         initialize(values => expect(values).toEqual({foo: "bar"}), {foo: "bar"}) // How kosher is this test in a callback? :-)
@@ -14,7 +14,7 @@ describe("Forms", () => {
 
 describe("Fields", () => {
     it ("can be registered with 'register,' with a default value, if no initial value is provided", () => {
-        const form = createForm<any>()
+        const form = createForm()
         const register = form.getState().actions.register
         let field = register("foo.bar[1].something", 1729)
         expect(field.value).toEqual(1729)
@@ -24,7 +24,7 @@ describe("Fields", () => {
     })
 
     it ("can be registered without providing a default value, if one has already been set", () => {
-        const form = createForm<any>()
+        const form = createForm()
         const register = form.getState().actions.register
         let field = register("foo.bar[1].something", 1729)
         expect(field.value).toEqual(1729)
@@ -34,7 +34,7 @@ describe("Fields", () => {
     })
 
     it("can be registered with a default value that overides one that has already been set", () => {
-        const form = createForm<any>()
+        const form = createForm()
         const initialize = form.getState().actions.initialize
         initialize(v => undefined, {foo: {bar: "bar"}})
         const register = form.getState().actions.register
@@ -43,7 +43,7 @@ describe("Fields", () => {
     })
 
     it("include a function that can be used to set their value", () => {
-        const form = createForm<any>()
+        const form = createForm()
         const initialize = form.getState().actions.initialize
         initialize(v => undefined, {foo: {bar: "bar"}})
         const register = form.getState().actions.register

@@ -1,4 +1,4 @@
-import { parseKey, select } from './select'
+const { parseKey, select } = require('./select')
 
 describe("parseKey", () => {
     it ("Recognizes that keys point to either arrays, objects or leaves.", () => {
@@ -46,17 +46,17 @@ describe("select", () => {
     })
 
     it("Allows us to create a field", () => {
-        const obj:any = JSON.parse(JSON.stringify(_obj))
+        const obj = JSON.parse(JSON.stringify(_obj))
         select("qux[1]")(obj).two = 2
         expect(obj.qux[1].two).toEqual(2)
     })
     it("Allows us to delete a field", () => {
-        const obj:any = JSON.parse(JSON.stringify(_obj))
+        const obj = JSON.parse(JSON.stringify(_obj))
         delete select("qux[1]")(obj).one
         expect(obj.qux[1].one).toEqual(undefined)
     })
     it("Builds slices if they do not exist", () => {
-        const obj:any = {foo: {}, bar: {baz: 1}}
+        const obj = {foo: {}, bar: {baz: 1}}
         select("foo.bar[4].two.cat", true, 10)(obj)
         expect(obj.foo.bar[4].two.cat).toEqual(10)
         expect(obj.bar.baz).toEqual(1)
