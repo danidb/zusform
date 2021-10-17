@@ -2,6 +2,8 @@
 # 🐻‍❄️ Zusform
 Not-too-opinionated form handling for React, with Zustand.
 
+**Please note that this is a 🏗️  work in progress.**
+
 - Small API, flexible.
 - Just a wrapper around a zustand store, so you can extend this as you wish. Anywhere you can use state tracked with Zustand, you can use this.
 - Supports Yup for validation
