@@ -257,6 +257,7 @@ export default function createForm() {
              * Initialize the form with initial values, provide submit handler.
              * @param {function} handelSubmit - Function of the form values, passed directly to onSubmit via formProps.
              * @param {any} initialValues - Self explanatory. Note that fields are not registered with metadata until a field definition is rendered.
+             * @param {Yup} yupSchema - Yup schema for validation.
              */
                 set(produce(
                     draft => {
