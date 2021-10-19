@@ -1,4 +1,5 @@
 import create from 'zustand'
+import shallow from 'zustand/shallow'
 import produce from 'immer'
 
 
@@ -21,7 +22,6 @@ export function parseKey(key) {
     }, [])
 }
 
-
 // https://stackoverflow.com/questions/38416020/deep-copy-in-es6-using-the-spread-syntax
 function deepClone(obj){
 	if(Array.isArray(obj)){
@@ -40,80 +40,108 @@ function deepClone(obj){
 	}
 	return obj;
 }
-export function getEntrySelector(key, build, value) {
-    const keys = parseKey(key)
-    return keys.slice(0).reduce((selector, _key, idx, arr) => {
 
-        return v => {
-            const selected = selector(v, build, value)
-            const current = selected[_key.key]
-            if (typeof selected !== 'object' && typeof current === 'undefined') {
-                // Eject
-                arr.splice(1)
-                return selector(v, build, value)
-            }
-            if (build && typeof current === 'undefined') {
-                switch(_key.type) {
-                    case "array": selector(v, build, value)[_key.key] = []; break;
-                    case "object": selector(v, build, value)[_key.key] = {}; break;
-                    case "leaf": selector(v, build, value)[_key.key] = deepClone(value); break;
-                    default: break;
-                }
-            }
-            if (!build && value && idx === arr.length - 1) {
-                selector(v, build, value)[_key.key] = deepClone(value)
-            }
-            return selector(v, build, value)[_key.key]
+const head = ([h]) => h
+const tail = ([,...t]) => t
+
+export function getField(obj, key, value) {
+    /**
+     * @param {any} - The object
+     * @param {string} key - Field key, e.g. "foo.bar[2].baz"
+     * @param {any=undefined} value - The default to return if the field doesn't exist.
+     */
+    const keys = parseKey(key)
+    function _getField(obj, keys, value) {
+        const _key = head(keys)
+        const _obj = obj[_key.key]
+        if (typeof _obj === 'undefined') {
+            return value
         }
-    }, v => v)
+        switch(_key.type) {
+            case "array":
+            case "object":
+                return _getField(_obj, tail(keys), value)
+            default:
+                return _obj || value
+        }
+    }
+    return _getField(obj, keys, value)
 }
 
+export function setField(obj, key, value) {
+    /**
+     * Creates nested structures if they do not exist.
+     * @param {any} obj - The object
+     * @param {string} key - Field key, e.g. "foo.bar[3].baz"
+     * @param {value} value - The value to set
+     */
+    const keys = parseKey(key)
+    function _setField(obj, keys, value) {
+        const _key = head(keys)
+        switch (_key.type) {
+            case "array":
+                if (typeof obj[_key.key] === 'undefined') {
+                    obj[_key.key] = [];
+                }
+                return _setField(obj[_key.key], tail(keys), value)
+            case "object":
+                if (typeof obj[_key.key] === 'undefined') {
+                    obj[_key.key] = {}
+                }
+                return _setField(obj[_key.key], tail(keys), value)
+            case "leaf":
+                obj[_key.key] = value
+                break;
+            default: break;
+        }
+    }
+    _setField(obj, keys, value)
+}
+
+// https://stackoverflow.com/questions/105034/how-to-create-a-guid-uuid
+function uuidv4() {
+    return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+      (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+    );
+  }
 
 export function buildDefaultMeta(name, set, get) {
-    const handleChange = buildHandleChange(name, set, get)
+    const key = uuidv4()
     return {
+        key: key,
         touched: false,
-        error: "",
-        handleChange,
-        handleChangeEvent: function (e) {
-            handleChange(e.target.value)
-        }
+        error: ""
     }
 }
 
 
 function validateField(name, set, get) {
     set(produce(
-        state => {
-            const entryMeta = getEntrySelector(name)
+        draft => {
             const schema = get().yupSchema
             if (schema) {
                 let validation;
                 try {
                     schema.validateSyncAt(name, get().values)
-                    if (name in Object.keys(state.errors)) {
-                        delete state.errors[name]
-                        entryMeta(state.meta).error = ""
+                    if (name in Object.keys(draft.errors)) {
+                        delete draft.errors[name]
+                        setField(draft.meta, `${name}.error`, "")
                     }
                 } catch(err) {
-                    state.errors[name] = err.message
-                    entryMeta(state.meta).error = err.message
+                    draft.errors[name] = err.message
+                    setField(draft.meta, `${name}.error`, err.message)
                 }
             }
-            return state
         }
     ))
 }
 
-function buildHandleChange(name, set, get) {
+function handleChange(name, set, get) {
     return v => {
         set(produce(
-            state => {
-                const entryValue = getEntrySelector(name, false, v)
-                const entryMeta = getEntrySelector(name)
-                entryValue(state.values)
-                entryMeta(state.meta).touched = true
-                return state
+            draft => {
+                setField(draft.values, name, v)
+                setField(draft.meta, `${name}.touched`, true)
             }
         ))
         validateField(name, set, get)
@@ -122,39 +150,84 @@ function buildHandleChange(name, set, get) {
 
 function pushArrayField(arrayKey, defaultValue, set, get) {
     set(produce(
-        state => {
-            const entry = getEntrySelector(arrayKey, true, [])
-            const len = entry(state.values).push(defaultValue)
-            const idx = len - 1
-            entry(state.meta)[idx] = buildDefaultMeta(`${arrayKey}[${idx}]`, set, get)
-            return state
+        draft => {
+            const value = getField(get().values, arrayKey)
+            let idx = 0;
+            if (typeof value === 'undefined') {
+                setField(draft.values, arrayKey, [])
+            } else {
+                idx = value.length
+            }
+            const key = `${arrayKey}[${idx}]`
+            setField(draft.values, key, defaultValue)
+            setField(draft.meta, key, buildDefaultMeta(`${arrayKey}[${idx}]`, set, get))
         }
     ))
 }
 
-function dropArrayField(arrayKey, index, set) {
+function dropArrayField(arrayKey, index, set, get) {
     set(produce(
-        state => {
-            const entry = getEntrySelector(arrayKey)
-            entry(state.values).splice(index, 1)
-            entry(state.meta).splice(index, 1)
-            return state
+        draft => {
+            const value = [...getField(get().values, arrayKey)]
+            const meta = [...getField(get().meta, arrayKey)]
+            value.splice(index, 1)
+            meta.splice(index, 1)
+            setField(draft.values, arrayKey, value)
+            setField(draft.meta, arrayKey, meta)
         }
     ))
 }
 
 function registerField(name, defaultValue, set, get) {
     set(produce(
-        state => {
-            const entryValue = getEntrySelector(name, true, defaultValue)
-            entryValue(state.values)
-            const entryMeta = getEntrySelector(name, true, buildDefaultMeta(name, set, get))
-            entryMeta(state.meta)
-            return state
+        draft => {
+            const value = getField(draft.values, name)
+            if (typeof value === 'undefined') {
+                setField(draft.values, name, defaultValue)
+            }
+            const meta = getField(draft.meta, name)
+            if (typeof meta === 'undefined') {
+                setField(draft.meta, name, buildDefaultMeta(name, set, get))
+            }
         }
     ))
 }
 
+export function fieldArray(name) {
+    return [
+        form => {
+            return  { value: getField(form.values, name), meta: getField(form.meta, name) }
+        },
+        (a, b) => {
+            if (typeof b.meta !== 'undefined') {
+                if (typeof a.meta !== 'undefined') {
+                    return JSON.stringify(a.meta.map(e => e.key)) === JSON.stringify(b.meta.map(e => e.key))
+                } else {
+                    return false
+                }
+            }
+            return true
+        }
+    ]
+}
+
+export function field(name, defaultValue, register) {
+    return [
+        form => {
+            const meta = getField(form.meta, name)
+            const value = getField(form.values, name)
+            return {
+                value,
+                meta,
+                register: form.registerField,
+                registered: typeof meta !== 'undefined',
+                handleChange: form.handleChange(name),
+                handleChangeEvent: e => form.handleChange(name)(e.target.value)
+            }
+        },
+        (a ,b) => JSON.stringify(a) === JSON.stringify(b)
+    ]
+}
 
 export default function createForm() {
     return create((set, get) => ({
@@ -164,17 +237,8 @@ export default function createForm() {
         values: {},
         meta: {},
         formProps: {},
-        getField: function(name, defaultValue) {
-            /**
-             * Get and register form field, return value and metadata.
-             * @param {string} name - Field name/key.
-             * @param {any} defaultValue - Default value to set if the field has not be initialized.
-             */
-            get().registerField(name, defaultValue, set, get)
-            const entry = getEntrySelector(name)
-            const value = entry(get().values)
-            const meta = entry(get().meta)
-            return { value, meta }
+        handleChange: function (name) {
+            return handleChange(name, set, get)
         },
         registerField: function (name, defaultValue) {
             /**
@@ -190,15 +254,15 @@ export default function createForm() {
              * @param {function} handelSubmit - Function of the form values, passed directly to onSubmit via formProps.
              * @param {any} initialValues - Self explanatory. Note that fields are not registered with metadata until a field definition is rendered.
              */
-            set(produce(state => {
-                state.formProps.onSubmit = function (e) {
-                    e.preventDefault(); get().handleSubmit(get().values)
+                set(produce(
+                    draft => {
+                draft.formProps.onSubmit = function (e) {
+                    e.preventDefault(); handleSubmit(get().values)
                 }
-                state.values = initialValues
-                state.meta = {}
-                state.initialized = true
-                state.yupSchema = yupSchema
-                return state
+                draft.values = initialValues || draft.values
+                draft.meta = {}
+                draft.initialized = true
+                draft.yupSchema = yupSchema
             }))
         },
         pushArrayField: function (key, defaultValue) {
@@ -209,13 +273,13 @@ export default function createForm() {
             */
             pushArrayField(key, defaultValue, set, get)
         },
-        dropArrayField: function( arrayKey, index) {
+        dropArrayField: function(arrayKey, index) {
             /**
              * Drop a field from an array.
              * @param {string} arrayKey - The key of the array (not them element)
              * @param {integer} index - Index of the item to delete.
              */
-            dropArrayField(arrayKey, index, set)
-        }
+            dropArrayField(arrayKey, index, set, get)
+        },
     }))
 }

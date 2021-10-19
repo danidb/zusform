@@ -21,7 +21,7 @@ Coming soon.
 
 ## Contributing
 Contributions and constructive criticism are welcome. Feel free to reach out!
-I'm sure there are flagrant issues and errors to be found. If you like what you see, consider contributing!
+I'm sure there are flagrant issues to be found. If you like what you see, consider contributing!
 
 ### TODO
 1. [x] Validation with Yup.

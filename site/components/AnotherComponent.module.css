@@ -1,7 +1,0 @@
-@value theme: "../styles/theme.css";
-@value color-primary from theme;
-
-.wrapper {
-    padding: 20px;
-    border: 1px solid color-primary;
-}
