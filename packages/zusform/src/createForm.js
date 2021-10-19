@@ -238,6 +238,10 @@ export default function createForm() {
         meta: {},
         formProps: {},
         handleChange: function (name) {
+            /**
+             * Constructs the onChange callback for a given field. Returns a function.
+             * @param {string} name - Field name (key path in form state).
+             */
             return handleChange(name, set, get)
         },
         registerField: function (name, defaultValue) {
