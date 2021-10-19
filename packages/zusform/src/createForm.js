@@ -1,5 +1,4 @@
 import create from 'zustand'
-import shallow from 'zustand/shallow'
 import produce from 'immer'
 
 
@@ -178,6 +177,28 @@ function dropArrayField(arrayKey, index, set, get) {
     ))
 }
 
+function swapArrayField(arrayKey, indexA, indexB, set, get) {
+    set(produce(
+        draft => {
+            const value = [...getField(get().values, arrayKey)]
+            const meta = [...getField(get().meta, arrayKey)]
+            const valueA = value[indexA]
+            const metaA = meta[indexA]
+            const valueB = value[indexB]
+            const metaB = meta[indexB]
+
+            value[indexA] = valueB
+            meta[indexA] = metaB
+            value[indexB] = valueA
+            meta[indexB] = metaA
+
+            setField(draft.values, arrayKey, value)
+            setField(draft.meta, arrayKey, meta)
+        }
+    ))
+}
+
+
 function registerField(name, defaultValue, set, get) {
     set(produce(
         draft => {
@@ -286,5 +307,14 @@ export default function createForm() {
              */
             dropArrayField(arrayKey, index, set, get)
         },
+        swapArrayField(arrayKey, indexA, indexB) {
+            /**
+             * Swap array fields.
+             * @param {string} arrayKey - The key of the array (not the element)
+             * @param {integer} indexA - Index of first item
+             * @param {integer} indexB - Index of second item
+             */
+            swapArrayField(arrayKey, indexA, indexB, set, get)
+        }
     }))
 }

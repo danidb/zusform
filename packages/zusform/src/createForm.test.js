@@ -127,6 +127,28 @@ describe("dropArrayField", () => {
     })
 })
 
+describe("swap array field", () => {
+    it("just works.", () => {
+        const form = createForm()
+        form.getState().pushArrayField('bar.baz', 1)
+        form.getState().pushArrayField('bar.baz', 2)
+        form.getState().pushArrayField('bar.baz', 3)
+        form.getState().pushArrayField('bar.baz', 4)
+        form.getState().pushArrayField('bar.baz', 5)
+        const itemA = { value: form.getState().values.bar.baz[2], meta: form.getState().meta.bar.baz[2] }
+        const itemB = { value: form.getState().values.bar.baz[4], meta: form.getState().meta.bar.baz[4] }
+        expect(itemA.value).toEqual(3)
+        expect(itemB.value).toEqual(5)
+        form.getState().swapArrayField("bar.baz", 2, 4)
+        const itemASwap = { value: form.getState().values.bar.baz[2], meta: form.getState().meta.bar.baz[2] }
+        const itemBSwap = { value: form.getState().values.bar.baz[4], meta: form.getState().meta.bar.baz[4] }
+        expect(itemASwap.value).toEqual(itemB.value)
+        expect(itemBSwap.value).toEqual(itemA.value)
+        expect(itemASwap.meta.key).toEqual(itemB.meta.key)
+        expect(itemBSwap.meta.key).toEqual(itemA.meta.key)
+    })
+})
+
 describe("handleChange", () => {
     it("updates the field value, runs validation and sets metadata.", () => {
     const form = createForm()
