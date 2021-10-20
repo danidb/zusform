@@ -199,6 +199,14 @@ function swapArrayField(arrayKey, indexA, indexB, set, get) {
 }
 
 
+function registerFieldArray(name, defaultValue, set, get) {
+    const values = getField(get().values, name)
+    if (values.length > 0) {
+        values.map((v, idx) => registerField(`${name}[${idx}]`, v || defaultValue, set, get))
+    }
+}
+
+
 function registerField(name, defaultValue, set, get) {
     set(produce(
         draft => {
@@ -264,6 +272,14 @@ export default function createForm() {
              * @param {string} name - Field name (key path in form state).
              */
             return handleChange(name, set, get)
+        },
+        registerFieldArray: function (name, defaultValue) {
+            /**
+             * Register a field array.
+             * @param {string} name - Field array key/name
+             * @param {any} defaulValue - Default value of entries (only used if they are empty e.g. init as [,,,])
+             */
+            registerFieldArray(name, defaultValue, set, get)
         },
         registerField: function (name, defaultValue) {
             /**
