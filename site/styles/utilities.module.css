@@ -73,3 +73,10 @@
     transform: scale(0.9);
     transition: transform 0.1s ease-in-out;
 }
+
+.fieldContainer {
+    background: white;
+    border: 1px solid color-primary;
+    padding: 10px;
+    margin: 8px;
+}

@@ -151,7 +151,7 @@ describe("swap array field", () => {
 
 describe("handleChange", () => {
     it("updates the field value, runs validation and sets metadata.", () => {
-    const form = createForm()
+        const form = createForm()
         form.getState().registerField('foo.bar[2]', 'fiz')
         form.getState().handleChange('foo.bar[2]')(4)
         expect(form.getState().values.foo.bar[2]).toEqual(4)
