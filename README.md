@@ -29,3 +29,5 @@ I'm sure there are flagrant issues to be found. If you like what you see, consid
 3. [x] Basic array operations (push, delete).
 4. [ ] Typing for TS users.
 5. [ ] CI/workflow setup for future changes
+6. [ ] Support for validation of any field collection (In progress)
+7. [ ] Betters for arbitrary, meaningful field collections (In progress)
