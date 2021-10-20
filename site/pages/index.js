@@ -18,34 +18,34 @@ const AnArray = (props) => {
             <h2 className={ustyles.h2}>An array of fields</h2>
             <Droppable droppableId={"onlyOne"}>
                 {droppable =>
-                <div {...droppable.droppableProps} ref={droppable.innerRef}>
-                    {value && value.map((_, idx) =>
-                        <Draggable key={meta[idx].key} draggableId={meta[idx].key} index={idx}>
-                            {draggable =>
-                                <div
-                                    className={ustyles.fieldContainer}
-                                    {...draggable.draggableProps}
-                                    {...draggable.dragHandleProps}
-                                    ref={draggable.innerRef}
-                                >
-                                    {idx > 0 && <button onClick={() => swapArrayField(props.name, idx, idx-1)}>Move Up</button>}
-                                    {idx < value.length - 1 && <button onClick={() => swapArrayField(props.name, idx, idx+1)}>Move Down</button>}
-                                    <button onClick={() => dropArrayField(props.name, idx)}>Delete this field</button>
-                                    <TextField
-                                        name={`${props.name}[${idx}]`}
-                                        defaultValue={idx}
-                                        placeholder={`Field ${idx}`}
-                                        label={`Field ${idx}`}
-                                        useForm={useForm}
-                                    />
-                                </div>
-                            }
-                        </Draggable>
-                    )}
-                    {droppable.placeholder}
-                </div>
-            }
-        </Droppable>
+                    <div {...droppable.droppableProps} ref={droppable.innerRef}>
+                        {value && value.map((_, idx) =>
+                            <Draggable key={meta[idx].key} draggableId={meta[idx].key} index={idx}>
+                                {draggable =>
+                                    <div
+                                        className={ustyles.fieldContainer}
+                                        {...draggable.draggableProps}
+                                        {...draggable.dragHandleProps}
+                                        ref={draggable.innerRef}
+                                    >
+                                        {idx > 0 && <button onClick={() => swapArrayField(props.name, idx, idx-1)}>Move Up</button>}
+                                        {idx < value.length - 1 && <button onClick={() => swapArrayField(props.name, idx, idx+1)}>Move Down</button>}
+                                        <button onClick={() => dropArrayField(props.name, idx)}>Delete this field</button>
+                                        <TextField
+                                            name={`${props.name}[${idx}]`}
+                                            defaultValue={idx}
+                                            placeholder={`Field ${idx}`}
+                                            label={`Field ${idx}`}
+                                            useForm={useForm}
+                                        />
+                                    </div>
+                                }
+                            </Draggable>
+                        )}
+                        {droppable.placeholder}
+                    </div>
+                }
+            </Droppable>
         </>
     )
 }

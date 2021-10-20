@@ -14,7 +14,7 @@ Not-too-opinionated form handling for React, with Zustand.
 - Support for easy validation of arbitary field collections
 
 ## Non-trivial Example
-The non-trivial a.k.a. kitchen sink a.k.a. hopefully useful example below includes most of the key features of Zusform. Also included is an integration with `react-beautiful-dnd` for a pleasant drag-and-drop experience on a field array.
+The non-trivial a.k.a. kitchen sink example includes most of the key features of Zusform. Also included is an integration with `react-beautiful-dnd` for a pleasant drag-and-drop experience on a field array.
 
 ```js
 import * as React from 'react'
@@ -158,5 +158,6 @@ I'm sure there are flagrant issues to be found. If you like what you see, consid
 3. [x] Basic array operations (push, delete).
 4. [ ] Typing for TS users.
 5. [ ] CI/workflow setup for future changes
-6. [ ] Support for validation of any field collection (In progress)
-7. [ ] Betters for arbitrary, meaningful field collections (In progress)
+6. [ ] Publish to NPM
+7. [ ] Support for validation of any field collection (In progress)
+8. [ ] Betters for arbitrary, meaningful field collections (In progress)
