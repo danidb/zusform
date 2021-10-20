@@ -3,15 +3,18 @@
 Not-too-opinionated form handling for React, with Zustand.
 
 **Please note that this is a 🏗️  work in progress.**
+First release coming soon.
 
+## What we have
 - Small API, flexible.
 - Just a wrapper around a zustand store, so you can extend this as you wish. Anywhere you can use state tracked with Zustand, you can use this.
 - Supports Yup for validation
-- Supports basic operations for field arrays.
+- Supports dynamic field arrays with simple utilities and a minimum of fuss.
 
 ## Where I'd like this to go
 - Easy to create and modify arbitrary field collections and track metadata for the collection (track metadata for every node in the form tree)
 - Support for easy validation of arbitary field collections
+- Even more utilities for dynamic forms
 
 ## Non-trivial Example
 The non-trivial a.k.a. kitchen sink example includes most of the key features of Zusform. Also included is an integration with `react-beautiful-dnd` for a pleasant drag-and-drop experience on a field array.
