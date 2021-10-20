@@ -157,7 +157,7 @@ I'm sure there are flagrant issues to be found. If you like what you see, consid
 2. [ ] Custom validation functions.
 3. [x] Basic array operations (push, delete).
 4. [ ] Typing for TS users.
-5. [ ] CI/workflow setup for future changes
+5. [ ] CI/workflow setup
 6. [ ] Publish to NPM
 7. [ ] Support for validation of any field collection (In progress)
 8. [ ] Betters for arbitrary, meaningful field collections (In progress)
