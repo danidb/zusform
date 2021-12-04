@@ -1,7 +1,7 @@
 {
   "name": "zusform",
-  "version": "0.0.6",
-  "description": "Form handling with Zustand.",
+  "version": "0.1.0",
+  "description": "Another react form library.",
   "main": "dist/index.js",
   "files": [
     "/dist"
