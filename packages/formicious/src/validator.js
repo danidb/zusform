@@ -2,7 +2,6 @@ import Yup from 'yup'
 import { isDefined } from './utilities'
 
 
-// NOTE Does this really need to be a class? Can't I just use a factory?
 export function YupValidator(schema) {
     this.schema = schema
 }
