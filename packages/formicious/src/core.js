@@ -21,7 +21,6 @@ export const PROXY_KEY = "fields"
 function setField(set, get, key, value) {
     set(draft => {
         keySet(key, value, draft.values)
-	// Only set metadata if the field has been registered.
         if (isDefined(keyGet(key, draft.meta, PROXY_KEY))) {
 	    keySet(key, true, draft.meta, PROXY_KEY, getDefaultMeta(), "touched")
         }
@@ -184,13 +183,6 @@ export function useField(
     {form, name, defaultValue, defaultMeta, transformValueIn, transformValueOut, selector}
 ) {
 
-
-    // NOTE These are why it's re-rendering. We need to apply
-    // any transforms here and get value/meta in the same call and
-    // we can define a comparison that prevents render.
-    // According to React this is all happening in the component where the
-    // custom hook is called, that's why it's always rendering.
-    // make getFieldProps an action so it's out of here...?
     const ret = form(
 	React.useCallback(
 	    state => {
