@@ -10,11 +10,17 @@ export interface Validator {
     validateField: (key: string, obj: FieldValue) => ValidationError[]
 }
 
-export interface ValidationError {
+export interface ValidationErrorInternal {
+    key: string;
     name: string;
-    error: string;
-    value: FieldValue;
+    validator:string;
+    errors: ValidationErorr[];
 }
+export interface ValidationError {
+    key: string;
+    error: FieldValue;
+}
+
 export type setField = (set, get, key: string, value: FieldValue) => void
 export type deleteField = (set, get, key: string) => void
 export type validateField = (set, get, key: string) => void

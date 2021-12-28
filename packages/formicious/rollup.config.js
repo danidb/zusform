@@ -3,7 +3,7 @@ import { babel } from '@rollup/plugin-babel'
 export default [
     {
         input: 'index.js',
-        external: ['zustand', 'immer', 'zustand/shallow'],
+        external: ['zustand', 'immer', 'zustand/shallow', 'crypto', 'react'],
         output: {
             dir: 'dist/esm',
             format: 'esm'
@@ -17,7 +17,7 @@ export default [
     },
     {
         input: 'index.js',
-        external: ['zustand', 'immer', 'zustand/shallow'],
+        external: ['zustand', 'immer', 'zustand/shallow', 'crypto', 'react'],
         output: {
             dir: 'dist',
             format: 'cjs',
@@ -32,7 +32,7 @@ export default [
     },
     {
         input: 'index.js',
-        external: ['zustand', 'immer', 'zustand/shallow'],
+        external: ['zustand', 'immer', 'zustand/shallow', 'crypto', 'react'],
         output: {
             dir: 'dist/umd',
             format: 'umd',
@@ -41,7 +41,9 @@ export default [
             globals: {
                 'zustand': 'create',
                 'zustand/shallow': 'shallow',
-                'immer': 'produce'
+                'immer': 'produce',
+		'crypto': 'crypto',
+		'react': 'react'
             }
         },
         plugins: [

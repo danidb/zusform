@@ -1,5 +1,2 @@
-import createForm, { field, fieldArray } from './src/createForm'
-export { field, fieldArray }
-export default createForm
-
-
+import { createForm, useFormicious, useField, useAction } from './src/core'
+export { createForm, useFormicious, useField, useAction}

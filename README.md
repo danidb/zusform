@@ -36,5 +36,3 @@ If there is sufficient interest, one could encapsulate state management and opti
 
 ## Work in Progress - Docs forthcoming
 
- 
- 

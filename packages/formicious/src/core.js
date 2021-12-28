@@ -1,185 +1,333 @@
+import * as React from 'react'
 import create from 'zustand'
-import shallow from 'zustand/shallow'
 import produce from 'immer'
 import {
     deepClone,
     keySet,
     keyGet,
-    keyDelete, 
+    keyDelete,
+    keyApply,
+    keySwap,
     INDEX_IS,
     isDefined,
     isNotDefined,
+    getParentOrSelfKeys,
+    proxyTraverse,
     uuidv4
 } from "./utilities"
 
-function setField(set, get, key, value, validate) {
+export const PROXY_KEY = "fields"
+
+function setField(set, get, key, value) {
     set(draft => {
         keySet(key, value, draft.values)
-	if(isDefined(draft.meta[key])) { 
-	    draft.meta[key].touched = true
-	}
+	// Only set metadata if the field has been registered.
+        if (isDefined(keyGet(key, draft.meta, PROXY_KEY))) {
+	    keySet(key, true, draft.meta, PROXY_KEY, getDefaultMeta(), "touched")
+        }
+    })
+}
+
+function deleteField(set, get, key) {
+    set(draft => {
+        keyDelete(key, draft.values)
+	keyDelete(key, draft.meta, PROXY_KEY)
     })
 }
 
 
-function deleteField(set, get, key) {
+function validateForm(set, get) {
+    let validation = []
     set(draft => {
-	keyDelete(key, draft.values)
-	delete draft.meta[key]
-	return draft
+	proxyTraverse(
+	    draft.meta,
+	    (obj) => { obj.formValidation = [] },
+	    PROXY_KEY
+	)
+
+	validation = draft.meta.validators.reduce((agg, validator) => {
+	    return [...agg, ...validator.validate(draft.values)]
+	}, [])
+
+	validation.forEach(v => {
+	    if (isDefined(v.key)) {
+		const current = keyGet(v.key, draft.meta, PROXY_KEY)
+		keySet(
+		    v.key,
+		    [
+			...(isDefined(current) && isDefined(current.formValidation)
+			    ? current.formValidation : []),
+			v
+		    ],
+		    draft.meta,
+		    PROXY_KEY,
+		    getDefaultMeta(),
+		    "formValidation"
+		)
+	    } else {
+		draft.meta.formValidation.push(v)
+	    }
+	})
     })
+    return validation
 }
 
 function validateField(set, get, key) {
     set(draft => {
-	const schema = draft.schema
-	const validator = draft.meta[key].validator
-	if (isDefined(schema)) { 
-	    try {	    
-		schema.validateSyncAt(key, draft.values)
-		draft.meta[key].error = undefined
-	    } catch(err) {
-		draft.meta[key].error = err.message	    
+        let validation =  draft.meta.validators.reduce((agg, formValidator) => {
+	    if (isDefined(formValidator.validateField)) {
+                return [...agg, ...formValidator.validateField({
+		    name: key,
+		    value: keyGet(key, draft.values),
+		    values: draft.values
+		})]
+	    } else {
+                return agg
 	    }
-	} else if (isDefined(validator)) {
-            const error = validator(keyGet(key, draft.values))
-            draft.meta[key].error = error 
+        }, [])
+
+	const _validators = keyGet(key, draft.meta, PROXY_KEY).validators
+	if (isDefined(_validators)) {
+	    validation = [
+		...validation,
+		..._validators.reduce((agg, validator) => {
+		    return [
+			...agg,
+			...validator({
+			    name: key,
+			    value: keyGet(key, draft.values),
+			    form: draft
+			})
+		    ]
+		}, [])
+	    ]
 	}
+	keySet(key, validation, draft.meta, PROXY_KEY, getDefaultMeta(), "fieldValidation")
     })
 }
 
 
 function swapField(set, get, keyA, keyB) {
     set(draft => {
-	const valueA = keyGet(keyA, draft.values)
-	keySet(keyA, deepClone(keyGet(keyB, draft.values)), draft.values)
-	keySet(keyB, deepClone(valueA), draft.values)	
-	const metaA = draft.meta[keyA]
-	draft.meta[keyA] = deepClone(draft.meta[keyB])
-	draft.meta[keyB] = deepClone(metaA)
-	return draft 
+	keySwap(keyA, keyB, draft.values)
+	keySwap(keyA, keyB, draft.meta, PROXY_KEY)
     })
 }
 
+function registerField({set, get, name, defaultValue, defaultMeta, key}) {
+    const _meta = {
+	...getDefaultMeta(key),
+	...(isDefined(defaultMeta) ? deepClone(defaultMeta) :  {}),
+	isRegistered: true
+    }
+    _meta.defaultValue = deepClone(defaultValue)
 
-function registerField(set, get, key, value, meta, validate) {
-    const _meta = isDefined(meta) ? meta : getDefaultMeta(validate)
     set(draft => {
-	const initialValue = keyGet(key, draft.values)
-	if (isNotDefined(initialValue)) {
-	    if (isDefined(value)) {
-		keySet(key, value, draft.values)
-	    } else {
-		keySet(key, null, draft.values)
-	    }
+
+	const value = keyGet(name, draft.values)
+        if (isNotDefined(value)) {
+            if (isDefined(defaultValue)) {
+                keySet(name, defaultValue, draft.values)
+            }
 	}
 
-	if (isNotDefined(draft.meta[key])) { 	    
-            draft.meta[key] = deepClone(_meta)
-	}
-	return draft
+	if (isNotDefined(keyGet(name, draft.meta, PROXY_KEY))) {
+	    keySet(name, _meta, draft.meta, PROXY_KEY, getDefaultMeta())
+        }
+
     })
-    return deepClone(_meta)
+
 }
 
+// Use immer for all calls to zustand set
 function formSetMiddleware(config) {
     return function(set, get, api) {
-	return config((partial, replace) => {
-	    const nextState = produce(partial)
-	    return set(nextState, replace)
-	}, get, api)
+        return config((partial, replace) => {
+            const nextState = produce(partial)
+            return set(nextState, replace)
+        }, get, api)
     }
 }
 
-
-function getDefaultMeta(validate) {
+export function getDefaultMeta(key) {
     const defaultMeta = {
-	touched: false,
-	error: false,
-	errorMessage: undefined,
+	isRegistered: false,
+	validators: [],
+	fieldValidation: [],
+	formValidation: [],
+        touched: false,
+	key: isDefined(key) ? key : uuidv4(),
+	user: {}
     }
     return deepClone(defaultMeta)
 }
 
-export function field({name, defaultValue, defaultMeta, validate, inTransform, outTransform}) {
-    return [
-	function(state) {
 
-            let outValue; let meta; 
-	    if(isNotDefined(state.meta[name])) {
-		meta = state.actions.registerField(name, defaultValue, defaultMeta, validate)		
-		outValue = deepClone(defaultValue)
+export function useFormicious(params) {
+    const {form, values, meta, validators, handleSubmit} = params || {}
+    const [_form] = React.useState(React.useCallback(
+	() => isDefined(form) ? form : createForm({values, meta, handleSubmit})
+    ), [form, values, meta])
 
-	    } else {
-		outValue = deepClone(keyGet(name, state.values))
-		meta = deepClone(state.meta[name])
-	    }	    
-	    outValue = isDefined(outTransform) ? outTransform(outValue) : outValue
-			
-	    return {
-		value: outValue,
-		meta,
-		props: { 
-		    id: name, 
-		    name, 
-		    onChange: function(e) {
-			let inValue; 
-			if ('target' in e && 'value' in e.target) {
-			    inValue = e.target.value
-			    inValue = isDefined(inTransform) ? inTransform(inValue) : inValue 
-			} else {
-			    inValue = e
-			    inValue = isDefined(inTransform) ? inTransform(inValue) : inValue
-			}
-			state.actions.setField(name, inValue)
-		    },
-		    onBlur: function() { state.actions.validateField(name) },
-		    value: outValue 
-		}	
-	    }
-	},
-	shallow
-    ]
+    const formProps = _form(React.useCallback(form => form.formProps, []))
+    return [formProps, _form]
 }
 
 
-function initializeForm(set, get, values, meta) {
+export function useAction(form, action) {
+    const _selector = React.useCallback(form => form.actions[action], [])
+    return form(_selector)
+}
+
+
+export function useField(
+    {form, name, defaultValue, defaultMeta, transformValueIn, transformValueOut, selector}
+) {
+
+
+    // NOTE These are why it's re-rendering. We need to apply
+    // any transforms here and get value/meta in the same call and
+    // we can define a comparison that prevents render.
+    // According to React this is all happening in the component where the
+    // custom hook is called, that's why it's always rendering.
+    // make getFieldProps an action so it's out of here...?
+    const ret = form(
+	React.useCallback(
+	    state => {
+		let value = keyGet(name, state.values)
+		value = isDefined(value) ? value : deepClone(defaultValue)
+
+		let meta = keyGet(name, state.meta, PROXY_KEY)
+		meta = isDefined(meta) ? meta : getDefaultMeta()
+		if (isNotDefined(meta.key)) {
+		    meta.key = uuidv4()
+		}
+
+		if (isDefined(transformValueOut)) {
+		    value = transformValueOut(value)
+		}
+
+		const ret = {
+		    value,
+		    meta,
+		    actions: {
+			registerField: function() {
+			    state.actions.registerField({name, defaultValue, defaultMeta, key: meta.key})
+			},
+			validateField: function() { state.actions.validateField(name) },
+			setField: function(value) { state.actions.setField(name, value) },
+			deleteField: function() { state.actions.deleteField(name) },
+			swapWith: function(key) { state.actions.swapField(name, key) }
+		    },
+		    props: {
+			id: name,
+			name,
+			onChange: function(e) {
+			    let inValue;
+			    if ('target' in e && 'value' in e.target) {
+				inValue = e.target.value
+			    } else {
+				inValue = e
+			    }
+			    inValue = isDefined(transformValueIn) ? transformValueIn(inValue) : inValue
+			    state.actions.setField(name, inValue)
+			},
+			onBlur: function() {
+			    state.actions.validateField(name)
+			},
+			value
+		    }
+		}
+
+		if (isDefined(selector)) {
+		    ret.selector = selector(ret)
+		}
+		return ret
+	    },
+	    [name, defaultValue, defaultMeta, transformValueIn, transformValueOut, selector]
+	),
+
+	// NOTE This seems a bit silly, but it works...
+	(a,b) => {
+	    if (isDefined(a.selector) || isDefined(b.selector)) {
+		return JSON.stringify(a.selector) === JSON.stringify(b.selector)
+	    } else {
+		return JSON.stringify(a) === JSON.stringify(b)
+	    }
+	}
+    )
+
+    React.useEffect(ret.actions.registerField, [])
+
+    if (isDefined(ret.selector)) {
+	return ret.selector
+    } else {
+	return ret
+    }
+}
+
+
+function initializeForm({set, get, values, meta}) {
     set(draft => {
-	draft.values = isDefined(values) ? deepClone(values) : {}
-	draft.meta = isDefined(meta) ? deepClone(meta) : {}
-	draft.initialized = true 
-	return draft 
+        draft.values = isDefined(values) ? deepClone(values) : {}
+        draft.meta = {
+	    validators: [],
+	    ...(isDefined(meta) ? deepClone(meta) : {})
+	}
+        draft.initialized = true
     })
 }
 
-export  function createForm({initialValues, initialMeta, schema, handleSubmit}) {
-    return create(
-	formSetMiddleware(
-	    (set, get, api) => ({
-		schema: isDefined(schema) && deepClone(schema),
-		initialized: false || isDefined(initialValues) || isDefined(initialMeta), 
-		formProps: {
-		    onSubmit: function (e) {
-			e.preventDefault();
-			if (isDefined(handleSubmit)) {
+export function createForm({
+	values,
+	meta,
+	validators,
+	handleSubmit
+}) {
+    /** Create a formicious form.
+    */
+    const ret = create(
+        formSetMiddleware(
+            (set, get, api) => ({
+		initialized: false,
+		values: isDefined(values) ? deepClone(values) : {},
+                meta: {validators: [], ...(isDefined(meta) ? deepClone(meta) : {})},
+                formProps: {
+		    onSubmit: function(e) {
+                        e.preventDefault();
+                        if (isDefined(handleSubmit)) {
 			    handleSubmit(get().values)
-			} else {
-			    console .log(get().values)
-			}
+                        } else {
+			    console.log(get().values)
+                        }
 		    }
-		},
-		meta: isDefined(initialMeta) ? deepClone(initialMeta) : {},
-		values: isDefined(initialValues) ? deepClone(initialValues) : {},
-		actions: {
-		    registerField: function (name, value, meta, validate) { return registerField(set, get, name, value, meta, validate) },
-		    deleteField: function (name) { deleteField(set, get, name) },
-		    swapField: function(nameA, nameB) { swapField(set, get, nameA, nameB) },
-		    setField: function(name, value, validate) { setField(set, get, name, value, validate) },
-		    initialize: function(values, meta) { initializeForm(set, get, values, meta) }
-		},
-	    })
-	)
+                },
+                actions: {
+                    registerField: function({
+			name,
+			defaultValue,
+			defaultMeta
+		    }) {
+                        return registerField({
+			    set,
+			    get,
+			    name,
+			    defaultValue,
+			    defaultMeta
+			})
+                    },
+                    deleteField: function(name) { deleteField(set, get, name) },
+                    swapField: function(nameA, nameB) { swapField(set, get, nameA, nameB) },
+		    blurField: function(name) { blurField(set, get, name) },
+                    setField: function(name, value) { setField(set, get, name, value) },
+		    validateField: function(name) { validateField(set, get, name) },
+		    validateForm: function() { validateForm(set, get) },
+                    initialize: function({values, meta}) {
+			initializeForm({set, get, values, meta})
+		    }
+                },
+            })
+        )
     )
+    return ret
 }
-
-
