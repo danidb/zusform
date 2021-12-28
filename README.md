@@ -1,38 +1,41 @@
-# Formicious :man_dancing: 
-Form handling for React, with a focus on easy development of complex cases. 
+# Formicious :man_dancing:
+Form handling for React, with a focus on easier development of complex cases with a minimum of fuss.
 
-## Philosophy 
-The primary goal of this library is to make developing arbitrarily complex forms in React less frustrating. 
+Development is ongoing, and the API may be somewhat volatile in the near future. Let me know if you like this and/or if you have any suggestions!
 
-Complex forms may have dynamic arrays of fields, dynamic key-value objects of fields, multiple non-trivial validation requirements for individual fields, 
-sets of fields or the whole form, dependent inputs/components, and may require transforms to be applied to form state to support funky custom input components. 
+## Idea
+The primary goal of Formicious is to make developing arbitrarily complex forms in React less frustrating.
 
-Forms are generalized as an arbitrary object and a set of metadata for a subset of individual fields. A form handling library
-is a way of manipulating that metadata, for the fields we are interested in tracking, and keeping form state in tune with form inputs. 
+By "complex forms" I mean forms containing dynamic arrays of fields, dynamic keys, multiple field-level or form-level validators, dependent inputs/components, transforms that need to be applied to values to support funky stuff...
 
-I found that I often needed extra dependencies or the same boiler-plate code (or "hacks") to build performant, complex forms in React with other common libraries. 
+Formicious assumes that you want to use controlled components.
 
-`formicious` has dependencies, and every other aspect of the library will only ever be secondary to the stated goal of making it simpler and more
-straightforward to develop very complicated, performant forms. 
+There are a lot of great tools for building forms in React but none of them left me "satisfied and smiling" when I had to deal with non-trivial/complex/enormous forms. If you're like me, perhaps you will like Formicious, if not there are plenty of alternatives like Formik, react-final-form, react-hook-form, etc.
 
-We should be able to let developers handle all of the following: 
+## Basics
+Formicious relies on Zustand and Immer to handle form state. Thanks to Zustand, forms can be defined both inside *and* outside of components, depending on what you want to accomplish.
 
-- Turn arbitrary objects into forms. 
-- Arbitrarily complex fields. 
-- Arbitrarily complex fields that depend on one another. 
-- Metadata and tracking field value are handled separately. 
-- Easily access form values from outside the form, for arbitrary sets of fields. 
-- Can handle walk-through style forms.
-- Easy dynamic arrays (or objects) of fields.
-- Real-time validation of individual fields.
-- Let developers bring their own input components. 
-- Handle multiple validation strategies for the form, fields. 
-- Access validation errors for whole form or fields. 
-- Form data, metadata, errors can be serialized. 
+```js
+const form = createForm({})
+function SomeComponent() {
+	const [form, formProps] = useFormicious({form})
+	//...
+}
+```
 
-## Form State 
-Formicious relies on Zustand and Immer to handle form state. Both libraries are succinct and don't have a large footprint. 
-If there is sufficient interest, one could encapsulate state management and optionally back Formicious with other state managers like Redux. 
+```js
+function SomeComponent() {
+	const [form, formProps] = useFormicious({})
+	//...
+}
+```
 
-## Work in Progress - Docs forthcoming
+Formicious assumes that you wrap your `<input></input>` in components.
 
+To work with Formicious, you'll usually be using one of the three provided hooks: `useField(...), useFormicious(...) and useAction(...)`.
+
+If you want direct access to all the form state, you can get that too.
+
+
+## ...Docs and Examples are Coming Soon, stay tuned!
+In the meantime a not-too-trivial example (with a dynamic array, `react-beautiful-dnd` and some other goodies) can be found in `/site/index.js`
