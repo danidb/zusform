@@ -42,7 +42,7 @@ describe("a field", () => {
     it("registers only metadata if neither an initial value or a default value are specified", () => {
 	const form = core.createForm({})
 	form.getState().actions.registerField({name: "foo.bar[2].baz"})
-	expect(() =>{ form.getState().values.foo.bar[2].baz }).toThrow(TypeError)
+	expect(form.getState().values.foo.bar[2].baz).toEqual(undefined)
 	expect(keyGet("foo.bar[2].baz", form.getState().meta, core.PROXY_KEY).isRegistered).toBeTruthy()
     })
 

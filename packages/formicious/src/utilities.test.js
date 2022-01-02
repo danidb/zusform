@@ -189,13 +189,13 @@ describe("keySet", () => {
 
     it("accepts an optional property name", () => {
 	const obj = {}
-	utilities.keySet("foo.bar[1][2][3]", true, obj, "fields", {}, "touched")
+	utilities.keySet("foo.bar[1][2][3]", true, obj, "fields", () => ({}), "touched")
 	expect(obj.fields.foo.fields.bar.fields[1].fields[2].fields[3].touched).toEqual(true)
     })
 
     it("accepts default properties for creating proxy objects.", () => {
 	const obj = {}
-	const defaults = {foo: "bar", baz: 2}
+	const defaults = () => ({foo: "bar", baz: 2})
 
 	utilities.keySet("foo.bar[1].baz", {}, obj, "fields", defaults)
 	expect(obj).toEqual({

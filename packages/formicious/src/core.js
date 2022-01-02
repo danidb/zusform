@@ -22,7 +22,7 @@ function setField(set, get, key, value) {
     set(draft => {
         keySet(key, value, draft.values)
         if (isDefined(keyGet(key, draft.meta, PROXY_KEY))) {
-	    keySet(key, true, draft.meta, PROXY_KEY, getDefaultMeta(), "touched")
+	    keySet(key, true, draft.meta, PROXY_KEY, getDefaultMeta, "touched")
         }
     })
 }
@@ -60,7 +60,7 @@ function validateForm(set, get) {
 		    ],
 		    draft.meta,
 		    PROXY_KEY,
-		    getDefaultMeta(),
+		    getDefaultMeta,
 		    "formValidation"
 		)
 	    } else {
@@ -101,7 +101,7 @@ function validateField(set, get, key) {
 		}, [])
 	    ]
 	}
-	keySet(key, validation, draft.meta, PROXY_KEY, getDefaultMeta(), "fieldValidation")
+	keySet(key, validation, draft.meta, PROXY_KEY, getDefaultMeta, "fieldValidation")
     })
 }
 
@@ -113,27 +113,65 @@ function swapField(set, get, keyA, keyB) {
     })
 }
 
-function registerField({set, get, name, defaultValue, defaultMeta, key}) {
-    const _meta = {
-	...getDefaultMeta(key),
-	...(isDefined(defaultMeta) ? deepClone(defaultMeta) :  {}),
-	isRegistered: true
-    }
-    _meta.defaultValue = deepClone(defaultValue)
 
-    set(draft => {
+function rectifyValue({defaultValue, value}) {
+    let _value = deepClone(value)
+    return (isDefined(_value) ? _value : deepClone(defaultValue))
+}
 
-	const value = keyGet(name, draft.values)
-        if (isNotDefined(value)) {
-            if (isDefined(defaultValue)) {
-                keySet(name, defaultValue, draft.values)
-            }
+function rectifyMeta({defaultMeta, meta, value}) {
+    let _meta = deepClone(meta)
+    _meta = isDefined(_meta) ? _meta : isDefined(defaultMeta) ? deepClone(defaultMeta) : {}
+
+    if (Array.isArray(value)) {
+	if (isNotDefined(_meta.fields)) {
+	    _meta.fields = []
+	}
+	for(let idx=0; idx<value.length; idx++) {
+	    if (isNotDefined(_meta.fields[idx])) {
+		_meta.fields[idx] = {key: uuidv4()}
+	    } else {
+		if (isNotDefined(_meta.fields[idx].key)) {
+		    _meta.fields[idx].key = uuidv4()
+		}
+	    }
 	}
 
-	if (isNotDefined(keyGet(name, draft.meta, PROXY_KEY))) {
-	    keySet(name, _meta, draft.meta, PROXY_KEY, getDefaultMeta())
-        }
+    } else if (typeof value === "object") {
+	if (isNotDefined(_meta.fields)) {
+	    _meta.fields = {}
+	}
+	for(const k of Object.keys(value)) {
+	    if (isDefined(_meta.fields[k])){
+		if (isNotDefined(_meta.fields[k].key)) {
+		    _meta.fields[k].key = uuidv4()
+		}
+	    } else {
+		_meta.fields[k] = {key: uuidv4()}
+	    }
+	}
+    }
+    return {...getDefaultMeta(), ..._meta}
+}
 
+function setFieldValueAndMeta({set, get, name, meta, value}) {
+    set(draft => {
+	keySet(name, value, draft.values)
+	keySet(name, meta, draft.meta, PROXY_KEY)
+    })
+}
+
+function registerField({set, get, name, defaultValue, defaultMeta}) {
+    set(draft => {
+
+	let value = keyGet(name, draft.values)
+	value = rectifyValue({value, defaultValue})
+	keySet(name, value, draft.values)
+
+	let meta = keyGet(name, draft.meta, PROXY_KEY)
+	meta = rectifyMeta({meta, defaultMeta, value})
+	meta.isRegistered = true
+	keySet(name, meta, draft.meta, PROXY_KEY, getDefaultMeta)
     })
 
 }
@@ -180,31 +218,48 @@ export function useAction(form, action) {
 
 
 export function useField(
-    {form, name, defaultValue, defaultMeta, transformValueIn, transformValueOut, selector}
+    {
+	form,
+	name,
+	defaultValue,
+	defaultMeta,
+	transformValueIn,
+	transformValueOut,
+	selector
+    }
 ) {
-
     const ret = form(
 	React.useCallback(
 	    state => {
 		let value = keyGet(name, state.values)
-		value = isDefined(value) ? value : deepClone(defaultValue)
+		value = rectifyValue({
+		    value,
+		    defaultValue: isDefined(transformValueIn) ? transformValueIn(defaultValue) : defaultValue
+		})
+		const transformedValue = isDefined(transformValueOut) ? transformValueOut(value) : value
 
 		let meta = keyGet(name, state.meta, PROXY_KEY)
-		meta = isDefined(meta) ? meta : getDefaultMeta()
-		if (isNotDefined(meta.key)) {
-		    meta.key = uuidv4()
-		}
+		meta = rectifyMeta({meta, defaultMeta, value})
+		meta.isRegistered = true
 
-		if (isDefined(transformValueOut)) {
-		    value = transformValueOut(value)
-		}
 
 		const ret = {
-		    value,
+		    value: transformedValue,
 		    meta,
 		    actions: {
-			registerField: function() {
-			    state.actions.registerField({name, defaultValue, defaultMeta, key: meta.key})
+			registerField: function () {
+			    state.actions.registerField({
+				name,
+				value,
+				meta
+			    })
+			},
+			prepField: function() {
+			    state.actions.setFieldValueAndMeta({
+				name,
+				value,
+				meta
+			    })
 			},
 			validateField: function() { state.actions.validateField(name) },
 			setField: function(value) { state.actions.setField(name, value) },
@@ -214,6 +269,7 @@ export function useField(
 		    props: {
 			id: name,
 			name,
+			value: transformedValue,
 			onChange: function(e) {
 			    let inValue;
 			    if ('target' in e && 'value' in e.target) {
@@ -226,8 +282,7 @@ export function useField(
 			},
 			onBlur: function() {
 			    state.actions.validateField(name)
-			},
-			value
+			}
 		    }
 		}
 
@@ -249,10 +304,11 @@ export function useField(
 	}
     )
 
-    React.useEffect(ret.actions.registerField, [])
+    React.useEffect(ret.actions.prepField, [])
 
     if (isDefined(ret.selector)) {
 	return ret.selector
+
     } else {
 	return ret
     }
@@ -312,6 +368,7 @@ export function createForm({
                     swapField: function(nameA, nameB) { swapField(set, get, nameA, nameB) },
 		    blurField: function(name) { blurField(set, get, name) },
                     setField: function(name, value) { setField(set, get, name, value) },
+		    setFieldValueAndMeta: function({name, value, meta}) { setFieldValueAndMeta({set, get, name, value, meta}) },
 		    validateField: function(name) { validateField(set, get, name) },
 		    validateForm: function() { validateForm(set, get) },
                     initialize: function({values, meta}) {

@@ -101,6 +101,8 @@ export function uuidv4() {
  * This is because we will want to move around the proxy structure and the properties
  * for a given key.
  */
+
+// TODO Defaults MUST BE A FUNCTION
 export function keySet(key, value, obj, proxy, defaults, property) {
     /** Set a value in obj with a key string.
      */
@@ -115,7 +117,7 @@ export function keySet(key, value, obj, proxy, defaults, property) {
 	    case "array": agg[k.key] = []; return agg[k.key]
 	    case "object": {
 		if (isDefined(proxy) && isDefined(defaults) && !k.isProxy) {
-		    agg[k.key] = deepClone(defaults)
+		    agg[k.key] = deepClone(defaults())
 		} else {
 		    agg[k.key] = {}
 		}
@@ -128,7 +130,7 @@ export function keySet(key, value, obj, proxy, defaults, property) {
 
     if (isDefined(proxy) && isDefined(property)) {
 	_obj[lastKey.key] = {
-	    ...(isDefined(defaults) ? deepClone(defaults) : {}),
+	    ...(isDefined(defaults) ? deepClone(defaults()) : {}),
 	    ..._obj[lastKey.key],
 	    [property]: deepClone(value)
 	}
