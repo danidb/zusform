@@ -11,8 +11,15 @@ import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 export default function Home() {
 
     const [formJSON, setFormJSON] = React.useState("")
-    const [formProps, form] = useFormicious({handleSubmit: v => setFormJSON(JSON.stringify(v))})
+    const [formProps, form, initialized] = useFormicious({
+	handleSubmit: v => setFormJSON(JSON.stringify(v))
+    })
     const swapField = useAction(form, "swapField")
+    const initialize = useAction(form, "initialize")
+
+    React.useEffect(() => {
+	initialize({values: {fiz: "buzz"}})
+    }, [])
 
     function handleDragEnd(result) {
 	swapField(
@@ -39,32 +46,36 @@ export default function Home() {
             </p>
 	    <h2 className={ustyles.h2}>A "not-as-simple-as-it-seems" example</h2>
 	    <form {...formProps}>
-		<TextField
-		    type="text"
-		    label="A first field. (key: example1.foo)"
-		    name="example1.foo"
-		    defaultValue="Why hello there!"
-		    form={form}
-		/>
-                <TextField
-		    type="text"
-		    label="A second field. (key: example1.bar)"
-		    name="example1.bar"
-		    defaultValue="Why hello there again!"
-		    form={form}
-                />
-		<TextField
-		    type="text"
-		    label="A third field. (key: example1.baz)"
-		    name="example1.baz"
-		    defaultValue="Why hello there once more!"
-		    form={form}
-		/>
-		  <DragDropContext onDragEnd={handleDragEnd}>
-                      <AnArray name="foo.anArray" form={form} />
-                  </DragDropContext>
-		<br />
-		<button type="submit">Submit</button>
+		{initialized &&
+		 <>
+		 <TextField
+		     type="text"
+		     label="A first field. (key: fiz)"
+		     name="fiz"
+		     defaultValue="Why hello there!"
+		     form={form}
+		 />
+                 <TextField
+		     type="text"
+		     label="A second field. (key: example1.bar)"
+		     name="example1.bar"
+		     defaultValue="Why hello there again!"
+		     form={form}
+                 />
+		 <TextField
+		     type="text"
+		     label="A third field. (key: example1.baz)"
+		     name="example1.baz"
+		     defaultValue="Why hello there once more!"
+		     form={form}
+		 />
+		 <DragDropContext onDragEnd={handleDragEnd}>
+                     <AnArray name="foo.anArray" form={form} />
+                 </DragDropContext>
+		 <br />
+		     <button type="submit">Submit</button>
+		     </>
+		}
 	    </form>
 	    <br />
 	    <br />

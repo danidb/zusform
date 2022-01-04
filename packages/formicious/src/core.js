@@ -1,6 +1,6 @@
 import * as React from 'react'
 import create from 'zustand'
-import produce from 'immer'
+import { produce, original } from 'immer'
 import {
     deepClone,
     keySet,
@@ -121,7 +121,7 @@ function rectifyValue({defaultValue, value}) {
 
 function rectifyMeta({defaultMeta, meta, value}) {
     let _meta = deepClone(meta)
-    _meta = isDefined(_meta) ? _meta : isDefined(defaultMeta) ? deepClone(defaultMeta) : {}
+    _meta = {...defaultMeta, ..._meta}
 
     if (Array.isArray(value)) {
 	if (isNotDefined(_meta.fields)) {
@@ -151,13 +151,14 @@ function rectifyMeta({defaultMeta, meta, value}) {
 	    }
 	}
     }
-    return {...getDefaultMeta(), ..._meta}
+    _meta = {...getDefaultMeta(), ..._meta}
+    return _meta
 }
 
 function setFieldValueAndMeta({set, get, name, meta, value}) {
     set(draft => {
 	keySet(name, value, draft.values)
-	keySet(name, meta, draft.meta, PROXY_KEY)
+	keySet(name, meta, draft.meta, PROXY_KEY, getDefaultMeta)
     })
 }
 
@@ -207,7 +208,8 @@ export function useFormicious(params) {
     ), [form, values, meta])
 
     const formProps = _form(React.useCallback(form => form.formProps, []))
-    return [formProps, _form]
+    const initialized = _form(React.useCallback(form => form.initialized, []))
+    return [formProps, _form, initialized]
 }
 
 
@@ -228,6 +230,14 @@ export function useField(
 	selector
     }
 ) {
+
+    const validateField = useAction(form, "validateField")
+    const registerField = useAction(form, "registerField")
+    const setFieldValueAndMeta = useAction(form, "setFieldValueAndMeta")
+    const setField = useAction(form, "setField")
+    const swapField = useAction(form, "swapField")
+    const deleteField = useAction(form, "deleteField")
+
     const ret = form(
 	React.useCallback(
 	    state => {
@@ -242,29 +252,28 @@ export function useField(
 		meta = rectifyMeta({meta, defaultMeta, value})
 		meta.isRegistered = true
 
-
 		const ret = {
 		    value: transformedValue,
 		    meta,
 		    actions: {
 			registerField: function () {
-			    state.actions.registerField({
+			    registerField({
 				name,
 				value,
 				meta
 			    })
 			},
 			prepField: function() {
-			    state.actions.setFieldValueAndMeta({
+			    setFieldValueAndMeta({
 				name,
 				value,
 				meta
 			    })
 			},
-			validateField: function() { state.actions.validateField(name) },
-			setField: function(value) { state.actions.setField(name, value) },
-			deleteField: function() { state.actions.deleteField(name) },
-			swapWith: function(key) { state.actions.swapField(name, key) }
+			validateField: function() { validateField(name) },
+			setField: function(value) { setField(name, value) },
+			deleteField: function() { deleteField(name) },
+			swapWith: function(key) { swapField(name, key) }
 		    },
 		    props: {
 			id: name,
@@ -278,7 +287,7 @@ export function useField(
 				inValue = e
 			    }
 			    inValue = isDefined(transformValueIn) ? transformValueIn(inValue) : inValue
-			    state.actions.setField(name, inValue)
+			    setField(name, inValue)
 			},
 			onBlur: function() {
 			    state.actions.validateField(name)
@@ -298,7 +307,7 @@ export function useField(
 	(a,b) => {
 	    if (isDefined(a.selector) || isDefined(b.selector)) {
 		return JSON.stringify(a.selector) === JSON.stringify(b.selector)
-	    } else {
+  	    } else {
 		return JSON.stringify(a) === JSON.stringify(b)
 	    }
 	}
@@ -308,7 +317,6 @@ export function useField(
 
     if (isDefined(ret.selector)) {
 	return ret.selector
-
     } else {
 	return ret
     }
@@ -320,7 +328,8 @@ function initializeForm({set, get, values, meta}) {
         draft.values = isDefined(values) ? deepClone(values) : {}
         draft.meta = {
 	    validators: [],
-	    ...(isDefined(meta) ? deepClone(meta) : {})
+	    ...(isDefined(meta) ? deepClone(meta) : {}),
+	    ...draft.meta
 	}
         draft.initialized = true
     })
