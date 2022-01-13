@@ -137,7 +137,7 @@ function rectifyMeta({defaultMeta, meta, value}) {
 	    }
 	}
 
-    } else if (typeof value === "object") {
+    } else if (typeof value === "object" && value !== null) {
 	if (isNotDefined(_meta.fields)) {
 	    _meta.fields = {}
 	}
@@ -209,7 +209,8 @@ export function useFormicious(params) {
 
     const formProps = _form(React.useCallback(form => form.formProps, []))
     const initialized = _form(React.useCallback(form => form.initialized, []))
-    return [formProps, _form, initialized]
+    const initialize = _form(React.useCallback(form => form.actions.initialize, []))
+    return [formProps, _form, initialized, initialize]
 }
 
 
