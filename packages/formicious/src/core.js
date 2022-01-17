@@ -84,8 +84,8 @@ function validateField(set, get, key) {
                 return agg
 	    }
         }, [])
-
-	const _validators = keyGet(key, draft.meta, PROXY_KEY).validators
+	const _meta = keyGet(key, draft.meta, PROXY_KEY)
+	const _validators = isDefined(_meta) ? _meta.validators : []
 	if (isDefined(_validators)) {
 	    validation = [
 		...validation,
@@ -316,7 +316,7 @@ export function useField(
 
     React.useEffect(ret.actions.prepField, [])
 
-    if (isDefined(ret.selector)) {
+    if (isDefined(selector)) {
 	return ret.selector
     } else {
 	return ret
@@ -384,6 +384,7 @@ export function createForm({
                     initialize: function({values, meta}) {
 			initializeForm({set, get, values, meta})
 		    }
+
                 },
             })
         )
