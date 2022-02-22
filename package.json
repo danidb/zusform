@@ -1,5 +1,5 @@
 {
-   "name": "formicious",
+   "name": "@danidb/formicious",
    "version": "0.1.0",
    "description": "Another react form library.",
    "main": "dist/index.js",
