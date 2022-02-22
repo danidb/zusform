@@ -346,9 +346,11 @@ export function useField({
     }
   );
 
-  if (!skipPrep) {
-    React.useEffect(ret.actions.prepField, []);
-  }
+  React.useEffect(() => {
+    if (!skipPrep) {
+      ret.actions.prepField();
+    }
+  }, [ret.actions.prepField, skipPrep]);
 
   if (isDefined(selector)) {
     return ret.selector;
