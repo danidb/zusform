@@ -1,10 +1,8 @@
-# Formicious :man_dancing:
-Form handling for React, with a focus on easier development of complex cases with a minimum of fuss.
+# An experiment, no longer being developed. 
 
-I'm using this package in several projects, and I'm actively developing it based on my needs. You should expect the API to be a bit volatile.
+A little library to build arbitrarily complex forms in React, with  Zustand for state management.
 
-The primary goal of Formicious is to make developing arbitrarily complex forms in React less frustrating.
+After experimenting with this approach in a large project that contained a lot of very unusual/demanding forms, I'm working on something better (hopefully better, and as typesafe as possible)... stay tuned. 
 
-Form state is handled with Zustand
 
-## Documentation and examples are coming soon. Stay tuned.
+
