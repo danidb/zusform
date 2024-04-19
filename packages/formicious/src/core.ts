@@ -1,4 +1,5 @@
 import {
+  useCallback,
   useEffect,
   useId,
   useMemo,
@@ -72,11 +73,10 @@ function build_field_hook<TData>(
       set_previous_value(value);
     }, [options?.on_change, value, previous_value]);
 
-    const local_set_value = useMemo(
-      () =>
-        function (new_value: any) {
-          return set_value(path, new_value);
-        },
+    const local_set_value = useCallback(
+      (new_value: any) => {
+        return set_value(path, new_value);
+      },
       [path],
     );
 
@@ -162,8 +162,8 @@ export function create_form<TData>(params?: FormParams<TData>) {
     return value;
   }
 
-  function field(name: string) {
-    const { value, onChange, onBlur } = field_hook(name);
+  function field(name: string, options?: FieldOptions) {
+    const { value, onChange, onBlur } = field_hook(name, options);
     return {
       value,
       onChange,
@@ -176,6 +176,7 @@ export function create_form<TData>(params?: FormParams<TData>) {
     useField: field_hook,
     rhf: {
       watch,
+      register: field,
     },
     watch,
     field,

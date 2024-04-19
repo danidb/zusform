@@ -1,5 +1,5 @@
 "use client";
-import { create_form, useField } from "@formicious/formicious";
+import { create_form } from "@formicious/formicious";
 import { Button } from "./ui/button";
 import { useEffect, useState } from "react";
 import { Input } from "./ui/input";
@@ -20,14 +20,8 @@ export const SomeForm = () => {
   const [current, set_current] = useState();
   const [previous, set_previous] = useState();
 
-  const { value: big } = form.watch("foo");
-  const { name, value, onChange, onBlur, set_value } = form.field("foo.biz", {
-    on_change: (current, previous) => {
-      set_current(current);
-      set_previous(previous);
-    },
-    default_value: "",
-  });
+  const big = form.watch("foo");
+  const { value, set_value } = form.useField("foo.biz");
 
   return (
     <>
@@ -36,10 +30,13 @@ export const SomeForm = () => {
       <p>Previous: {previous}</p>
       <Input
         type="text"
-        name={name}
-        value={value}
-        onChange={onChange}
-        onBlur={onBlur}
+        {...form.field("foo.biz", {
+          on_change: (current, previous) => {
+            set_current(current);
+            set_previous(previous);
+          },
+          default_value: "",
+        })}
       />
       <Button onClick={() => set_value("This is the song that never ends")}>
         Click me you bastard
@@ -50,7 +47,7 @@ export const SomeForm = () => {
 };
 
 export const SomeOtherStuff = () => {
-  const { set_value } = form.field("foo.biz");
+  const { set_value } = form.useField("foo.biz");
 
   return (
     <>
@@ -60,7 +57,7 @@ export const SomeOtherStuff = () => {
   );
 };
 export const SomeOtherOtherStuff = () => {
-  const { set_value } = form.field("foo.funk");
+  const { set_value } = form.useField("foo.funk");
 
   return (
     <>
@@ -71,7 +68,7 @@ export const SomeOtherOtherStuff = () => {
 };
 
 export const PippoBaudoField = () => {
-  const { value, set_value } = form.field("foo.bar.4.baz");
+  const { value, set_value } = form.useField("foo.bar.4.baz");
 
   return (
     <>
@@ -84,8 +81,8 @@ export const PippoBaudoField = () => {
 };
 
 export const PippoWatch = () => {
-  const value = form.watch("foo.bar.4.baz");
-  const { set_value } = form.field("foo.bar.5.baz");
+  const value = form.rhf.watch("foo.bar.4.baz");
+  const { set_value } = form.useField("foo.bar.5.baz");
 
   const [effected, set_effected] = useState();
 
