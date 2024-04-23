@@ -46,7 +46,7 @@ type FieldOptions = {
 function build_field_hook<TData>(
   subscribe: (name: string) => any,
   get_snapshot: (path: (string | number)[]) => () => any,
-  get_server_snapshot: (path: (string | number)[]) => any,
+  // get_server_snapshot: (path: (string | number)[]) => any,
   set_value: (path: (string | number)[], value: any) => [any, any],
   get_value: (path: (string | number)[]) => any,
 ) {
@@ -57,8 +57,8 @@ function build_field_hook<TData>(
     const path = useMemo(() => parse_path(name), [name]);
     const value = useSyncExternalStore(
       subscribe(name),
-      get_snapshot(path),
-      get_server_snapshot(path),
+      get_snapshot(["values", ...path]),
+      get_snapshot(["params", "default_values", ...path]),
     );
 
     useEffect(() => {
@@ -103,6 +103,11 @@ function build_field_hook<TData>(
   };
 }
 
+export function build_form_hook<TData>(params?: FormParams<TData>) {
+  const id = useId();
+  const ref = useRef();
+}
+
 export function create_form<TData>(params?: FormParams<TData>) {
   const form = {
     values: structuredClone(params?.default_values) ?? {},
@@ -127,16 +132,7 @@ export function create_form<TData>(params?: FormParams<TData>) {
   }
 
   function get_snapshot(path: (string | number)[]) {
-    return () => get(form.values, path);
-  }
-
-  function get_server_snapshot(path: (string | number)[]) {
-    return () => {
-      if (is_defined(form.params.default_values)) {
-        return get(form.params.default_values, path);
-      }
-      return undefined;
-    };
+    return () => get(form, path);
   }
 
   function set_value(path: (string | number)[], new_value: any): [any, any] {
@@ -152,7 +148,6 @@ export function create_form<TData>(params?: FormParams<TData>) {
   const field_hook = build_field_hook(
     subscribe,
     get_snapshot,
-    get_server_snapshot,
     set_value,
     get_value,
   );
