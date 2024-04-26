@@ -47,8 +47,8 @@ function build_field_hook<TData>(
   subscribe: (name: string) => any,
   get_snapshot: (path: (string | number)[]) => () => any,
   // get_server_snapshot: (path: (string | number)[]) => any,
-  set_value: (path: (string | number)[], value: any) => [any, any],
-  get_value: (path: (string | number)[]) => any,
+  set_form: (path: (string | number)[], value: any) => [any, any],
+  get_form: (path: (string | number)[]) => any,
 ) {
   return function (name: string, options?: FieldOptions) {
     const id = useId();
@@ -73,25 +73,29 @@ function build_field_hook<TData>(
       set_previous_value(value);
     }, [options?.on_change, value, previous_value]);
 
-    const local_set_value = useCallback(
+    const set_value = useCallback(
       (new_value: any) => {
-        return set_value(path, new_value);
+        return set_form(["values", ...path], new_value);
       },
       [path],
     );
+
+    const get_value = useCallback(() => {
+      return get_form(["values", ...path]);
+    }, [path]);
 
     return {
       id,
       ref,
       name,
       value: value ?? options?.default_value,
-      set_value: local_set_value,
+      set_value,
       get_value,
       onChange: (new_value: any) => {
         if (is_defined(new_value?.currentTarget?.value)) {
-          set_value(path, new_value?.currentTarget?.value);
+          set_value(new_value?.currentTarget?.value);
         } else {
-          set_value(path, new_value);
+          set_value(new_value);
         }
       },
       onBlur: () => {
@@ -135,21 +139,21 @@ export function create_form<TData>(params?: FormParams<TData>) {
     return () => get(form, path);
   }
 
-  function set_value(path: (string | number)[], new_value: any): [any, any] {
-    const ret = set(form.values, path, new_value);
+  function set_form(path: (string | number)[], new_value: any): [any, any] {
+    const ret = set(form, path, new_value);
     emit(form);
     return ret;
   }
 
-  function get_value(path: (string | number)[]) {
-    return get(form.values, path);
+  function get_form(path: (string | number)[]) {
+    return get(form, path);
   }
 
   const field_hook = build_field_hook(
     subscribe,
     get_snapshot,
-    set_value,
-    get_value,
+    set_form,
+    get_form,
   );
 
   function watch(name: string) {
