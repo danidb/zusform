@@ -46,7 +46,7 @@ export function set(
   return [previous, value];
 }
 
-export function get(obj: any, path: (string | number)[]) {
+export function get(obj: any, path?: (string | number)[]) {
   function r_get(obj: any, path: (string | number)[]) {
     const step = path[0];
     const next = path[1];
@@ -61,7 +61,7 @@ export function get(obj: any, path: (string | number)[]) {
     return undefined;
   }
 
-  if (!is_defined(path)) {
+  if (!is_array(path)) {
     return obj;
   }
 
