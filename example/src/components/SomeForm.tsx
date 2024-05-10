@@ -3,12 +3,18 @@ import { create_form } from "@formicious/formicious";
 import { Button } from "./ui/button";
 import { useEffect, useState } from "react";
 import { Input } from "./ui/input";
+import { z } from "zod";
+import { MatrixInput, MatrixView } from "./MatrixInput";
 
-const form = create_form<{
-  foo: {
-    bar: ({ baz: number } | undefined)[];
-  };
-}>({
+const schema = z.object({
+  foo: z.object({
+    bar: z.array(z.object({ baz: z.number() })),
+  }),
+});
+
+type SomeFormSchema = z.infer<typeof schema>;
+
+export const form = create_form<SomeFormSchema>({
   default_values: {
     foo: {
       bar: [{ baz: 2 }, , , { baz: 3 }],
@@ -25,6 +31,9 @@ export const SomeForm = () => {
 
   return (
     <>
+      <MatrixView form={form} />
+
+      <MatrixInput form={form} />
       <p>Value: {value}</p>
       <p>Current: {current}</p>
       <p>Previous: {previous}</p>
@@ -39,7 +48,7 @@ export const SomeForm = () => {
         })}
       />
       <Button onClick={() => set_value("This is the song that never ends")}>
-        Click me you bastard
+        Click me
       </Button>
       <pre>{JSON.stringify(big, null, 2)}</pre>
     </>
@@ -51,8 +60,7 @@ export const SomeOtherStuff = () => {
 
   return (
     <>
-      <Button onClick={() => set_value("foobar")}>Click me you fool</Button>
-      <p>Note that since we pass </p>
+      <Button onClick={() => set_value("foobar")}>Click me</Button>
     </>
   );
 };
@@ -61,8 +69,7 @@ export const SomeOtherOtherStuff = () => {
 
   return (
     <>
-      <Button onClick={() => set_value("foobar")}>Click me you wiseone</Button>
-      <p>Note that since we pass </p>
+      <Button onClick={() => set_value("foobar")}>Click me</Button>
     </>
   );
 };
@@ -73,7 +80,7 @@ export const PippoBaudoField = () => {
   return (
     <>
       <Button onClick={() => set_value(value ? value + 1 : 1)}>
-        Uppety friend
+        Flying Fish
       </Button>
       <p>{value}</p>
     </>

@@ -62,10 +62,19 @@ function build_field_hook<TData>(
     );
 
     useEffect(() => {
+
+      // NOTE: It would be interesting to decide when to apply the default value 
+      // for example - on undefined, on empty string, etc. 
+
+      if (is_defined(options?.default_value) && !is_defined(value)) {
+          set_form(["values", ...path], options?.default_value)
+      }
+
+
       if (Object.is(previous_value, value)) {
         return;
       }
-
+    
       if (is_function(options?.on_change)) {
         options?.on_change(value, previous_value);
       }
