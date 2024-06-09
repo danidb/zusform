@@ -1,36 +1,43 @@
 "use client";
-import { create_form } from "@formicious/formicious";
+import { Form, create_form, useForm } from "@formicious/formicious";
 import { Button } from "./ui/button";
 import { useEffect, useState } from "react";
 import { Input } from "./ui/input";
-import { z } from "zod";
+// import { z } from "zod";
 import { MatrixInput, MatrixView } from "./MatrixInput";
 
-const schema = z.object({
-  foo: z.object({
-    bar: z.array(z.object({ baz: z.number() })),
-  }),
-});
+// const schema = z.object({
+//   foo: z.object({
+//     bar: z.array(z.object({ baz: z.number() })),
+//   }),
+// });
+//
+// type SomeFormSchema = z.infer<typeof schema>;
 
-type SomeFormSchema = z.infer<typeof schema>;
+// export const form = create_form<SomeFormSchema>({
+//   default_values: {
+//     foo: {
+//       bar: [{ baz: 2 }, , , { baz: 3 }],
+//     },
+//   },
+// });
 
-export const form = create_form<SomeFormSchema>({
-  default_values: {
-    foo: {
-      bar: [{ baz: 2 }, , , { baz: 3 }],
-    },
-  },
-});
-
-export const SomeForm = () => {
+export const SomeForm = ({ children }) => {
   const [current, set_current] = useState();
   const [previous, set_previous] = useState();
+  const form = useForm({
+    default_values: {
+      foo: {
+        bar: [{ baz: 2 }, , , { baz: 3 }],
+      },
+    },
+  });
 
   const big = form.watch("foo");
   const { value, set_value } = form.useField("foo.biz");
 
   return (
-    <>
+    <Form value={form}>
       <MatrixView form={form} />
 
       <MatrixInput form={form} />
@@ -51,11 +58,14 @@ export const SomeForm = () => {
         Click me
       </Button>
       <pre>{JSON.stringify(big, null, 2)}</pre>
-    </>
+      <p>Children Below</p>
+      {children}
+    </Form>
   );
 };
 
 export const SomeOtherStuff = () => {
+  const form = useForm();
   const { set_value } = form.useField("foo.biz");
 
   return (
@@ -65,6 +75,7 @@ export const SomeOtherStuff = () => {
   );
 };
 export const SomeOtherOtherStuff = () => {
+  const form = useForm();
   const { set_value } = form.useField("foo.funk");
 
   return (
@@ -75,6 +86,7 @@ export const SomeOtherOtherStuff = () => {
 };
 
 export const PippoBaudoField = () => {
+  const form = useForm();
   const { value, set_value } = form.useField("foo.bar.4.baz");
 
   return (
@@ -88,6 +100,7 @@ export const PippoBaudoField = () => {
 };
 
 export const PippoWatch = () => {
+  const form = useForm();
   const value = form.rhf.watch("foo.bar.4.baz");
   const { set_value } = form.useField("foo.bar.5.baz");
 

@@ -1,5 +1,7 @@
 import {
+  createContext,
   useCallback,
+  useContext,
   useEffect,
   useId,
   useMemo,
@@ -62,19 +64,19 @@ function build_field_hook<TData>(
     );
 
     useEffect(() => {
-
-      // NOTE: It would be interesting to decide when to apply the default value 
-      // for example - on undefined, on empty string, etc. 
+      // NOTE: It would be interesting to let users decide when to apply the default value
+      // for example - on undefined, on empty string, etc. This might just cause more
+      // confusion and complicate the API unecessarily. Users can always do whatever
+      // they want "on_change."
 
       if (is_defined(options?.default_value) && !is_defined(value)) {
-          set_form(["values", ...path], options?.default_value)
+        set_form(["values", ...path], options?.default_value);
       }
-
 
       if (Object.is(previous_value, value)) {
         return;
       }
-    
+
       if (is_function(options?.on_change)) {
         options?.on_change(value, previous_value);
       }
@@ -116,9 +118,14 @@ function build_field_hook<TData>(
   };
 }
 
-export function build_form_hook<TData>(params?: FormParams<TData>) {
-  const id = useId();
-  const ref = useRef();
+export const FormContext = createContext(null);
+export const Form = FormContext.Provider;
+
+export function useForm<TData>(params?: FormParams<TData>) {
+  const context_form = useContext(FormContext);
+  const form = useRef(context_form ?? create_form(params)).current;
+
+  return form;
 }
 
 export function create_form<TData>(params?: FormParams<TData>) {
